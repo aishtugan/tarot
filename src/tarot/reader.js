@@ -105,27 +105,49 @@ export class TarotReader {
     try {
       console.log(`⚡ Performing quick reading...`);
       
-      // Get a random card
-      const card = getRandomCard();
-      const isReversed = Math.random() < 0.3; // 30% chance of reversal
+      // Get 3 random cards for a quick 3-card reading
+      const cards = [];
+      const reversedCards = [];
       
-      // Get quick interpretation
-      const interpretation = getQuickInterpretation(card, readingType, isReversed, language);
+      for (let i = 0; i < 3; i++) {
+        const card = getRandomCard();
+        const isReversed = Math.random() < 0.3; // 30% chance of reversal
+        
+        cards.push(card);
+        if (isReversed) {
+          reversedCards.push(i);
+        }
+      }
       
-      const reading = {
-        type: 'quick',
-        readingType: readingType,
-        card: card,
-        interpretation: interpretation,
-        isReversed: isReversed,
-        userQuestion: userQuestion,
-        timestamp: new Date().toISOString()
-      };
+      // Create spread name for positions
+      const positions = ['Past', 'Present', 'Future'];
+      const spreadName = 'Quick 3-Card Spread';
+      
+      // Interpret the cards
+      const interpretations = interpretSpread(cards, spreadName, readingType, reversedCards);
+      
+      // Generate AI-enhanced interpretation
+      let aiEnhancedReading = null;
+      try {
+        aiEnhancedReading = await generateTarotInterpretation(cards, spreadName, readingType, userQuestion, language);
+        console.log('🤖 AI enhancement applied');
+      } catch (error) {
+        console.log('⚠️ AI enhancement failed, using standard interpretation');
+      }
+      
+      // Format the complete reading
+      const reading = formatCompleteReading(interpretations, spreadName, readingType, aiEnhancedReading);
+      
+      // Add metadata
+      reading.type = 'quick';
+      reading.readingType = readingType;
+      reading.userQuestion = userQuestion;
+      reading.timestamp = new Date().toISOString();
       
       // Store in reading history
       this.readingHistory.push(reading);
       
-      console.log(`✅ Quick reading completed`);
+      console.log(`✅ Quick 3-card reading completed`);
       
       return reading;
       

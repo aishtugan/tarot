@@ -210,16 +210,17 @@ async function handleCommand(chatId, command, language = 'en') {
         
       case "/quick":
         const quickReading = await tarotReader.performQuickReading('general', '', language);
+        
         await sendEnhancedReading(bot, chatId, quickReading, language, true);
         incrementReadingCount(chatId);
         storeReading(chatId, {
           readingType: 'quick',
-          spreadName: 'Single Card',
-          cards: [quickReading.card],
-          interpretation: quickReading.interpretation,
+          spreadName: quickReading.spreadName || 'Quick 3-Card Spread',
+          cards: quickReading.cards || [],
+          interpretation: quickReading.narrative || quickReading.interpretation,
           userQuestion: quickReading.userQuestion || '',
-          aiEnhanced: false,
-          personalized: false
+          aiEnhanced: quickReading.aiEnhanced || false,
+          personalized: quickReading.personalized || false
         });
         await sendCommandsMessage(chatId, language);
         break;

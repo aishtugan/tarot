@@ -160,6 +160,7 @@ const TRANSLATIONS = {
     card_keywords: "Keywords",
     card_meaning: "Meaning",
     card_advice: "Advice",
+    card_reversed_note: "Note: Card image shown upright for clarity, but meaning is reversed",
     
     // Reading sections
     reading_summary_title: "**🔮 Reading Summary**",
@@ -367,6 +368,7 @@ const TRANSLATIONS = {
     card_keywords: "Ключевые слова",
     card_meaning: "Значение",
     card_advice: "Совет",
+    card_reversed_note: "Примечание: Изображение карты показано прямо для ясности, но значение перевернутое",
     
     // Reading sections
     reading_summary_title: "**🔮 Сводка гадания**",
@@ -574,6 +576,7 @@ const TRANSLATIONS = {
     card_keywords: "Palabras clave",
     card_meaning: "Significado",
     card_advice: "Consejo",
+    card_reversed_note: "Nota: La imagen de la carta se muestra derecha para mayor claridad, pero el significado está invertido",
     
     // Reading sections
     reading_summary_title: "**🔮 Resumen de Lectura**",

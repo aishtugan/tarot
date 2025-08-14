@@ -20,8 +20,14 @@ export async function sendCardImage(bot, chatId, card, language = 'en') {
     if (cardImage) {
       // Send the actual card image
       const caption = formatCardCaption(card, language);
+      
+      // If card is reversed, add a note about the image being upright
+      const finalCaption = card.reversed 
+        ? caption + '\n\n🔄 <i>' + getTranslation('card_reversed_note', language) + '</i>'
+        : caption;
+      
       await bot.sendPhoto(chatId, cardImage, {
-        caption: caption,
+        caption: finalCaption,
         parse_mode: 'HTML',
         contentType: 'image/jpeg' // Explicitly set content type to avoid deprecation warning
       });
@@ -64,10 +70,16 @@ export async function sendCardGallery(bot, chatId, cards, language = 'en') {
       if (cardImage) {
         hasImages = true;
         const caption = formatCardCaption(card, language);
+        
+        // If card is reversed, add a note about the image being upright
+        const finalCaption = card.reversed 
+          ? caption + '\n\n🔄 <i>' + getTranslation('card_reversed_note', language) + '</i>'
+          : caption;
+        
         mediaGroup.push({
           type: 'photo',
           media: cardImage,
-          caption: caption,
+          caption: finalCaption,
           parse_mode: 'HTML',
           contentType: 'image/jpeg' // Explicitly set content type to avoid deprecation warning
         });
