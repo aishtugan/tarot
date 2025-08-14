@@ -22,7 +22,8 @@ export async function sendCardImage(bot, chatId, card, language = 'en') {
       const caption = formatCardCaption(card, language);
       await bot.sendPhoto(chatId, cardImage, {
         caption: caption,
-        parse_mode: 'HTML'
+        parse_mode: 'HTML',
+        contentType: 'image/jpeg' // Explicitly set content type to avoid deprecation warning
       });
       return true;
     } else {
@@ -67,7 +68,8 @@ export async function sendCardGallery(bot, chatId, cards, language = 'en') {
           type: 'photo',
           media: cardImage,
           caption: caption,
-          parse_mode: 'HTML'
+          parse_mode: 'HTML',
+          contentType: 'image/jpeg' // Explicitly set content type to avoid deprecation warning
         });
       }
     }

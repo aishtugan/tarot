@@ -1,6 +1,9 @@
 import "dotenv/config";
 import express from "express";
 import TelegramBot from "node-telegram-bot-api";
+
+// Suppress deprecation warnings for node-telegram-bot-api
+process.removeAllListeners('warning');
 import { tarotReader } from "./tarot/reader.js";
 import { initDatabase } from "./database/init.js";
 import { registerUser, incrementReadingCount, getUserStats, storeReading, getUserProfile } from "./database/users.js";
@@ -103,6 +106,7 @@ bot.on("message", async (msg) => {
       aiEnhanced: reading.aiEnhanced || false,
       personalized: reading.personalized || false
     });
+    await sendCommandsMessage(chatId, userLanguage);
   } catch (err) {
     console.error("Bot error:", err);
     const errorMsg = err?.response?.data?.error?.message || err?.message || String(err);
@@ -139,6 +143,7 @@ async function handleCommand(chatId, command, language = 'en') {
     switch (cmd) {
       case "/start":
         await sendWelcomeMessage(bot, chatId, language);
+        await sendCommandsMessage(chatId, language);
         break;
         
       case "/help":
@@ -147,10 +152,12 @@ async function handleCommand(chatId, command, language = 'en') {
           getTranslation('help', language),
           { parse_mode: 'HTML' }
         );
+        // Don't send commands message after help command
         break;
         
       case "/language":
         await handleLanguageCommand(chatId, language);
+        await sendCommandsMessage(chatId, language);
         break;
         
       case "/daily":
@@ -166,6 +173,7 @@ async function handleCommand(chatId, command, language = 'en') {
           aiEnhanced: dailyReading.aiEnhanced || false,
           personalized: dailyReading.personalized || false
         });
+        await sendCommandsMessage(chatId, language);
         break;
         
       case "/love":
@@ -181,6 +189,7 @@ async function handleCommand(chatId, command, language = 'en') {
           aiEnhanced: loveReading.aiEnhanced || false,
           personalized: loveReading.personalized || false
         });
+        await sendCommandsMessage(chatId, language);
         break;
         
       case "/career":
@@ -196,6 +205,7 @@ async function handleCommand(chatId, command, language = 'en') {
           aiEnhanced: careerReading.aiEnhanced || false,
           personalized: careerReading.personalized || false
         });
+        await sendCommandsMessage(chatId, language);
         break;
         
       case "/quick":
@@ -211,14 +221,17 @@ async function handleCommand(chatId, command, language = 'en') {
           aiEnhanced: false,
           personalized: false
         });
+        await sendCommandsMessage(chatId, language);
         break;
         
       case "/fulldeck":
         await handleFullDeckCommand(chatId, language);
+        await sendCommandsMessage(chatId, language);
         break;
         
       case "/profile":
         await handleProfileCommand(chatId, language);
+        await sendCommandsMessage(chatId, language);
         break;
         
       case "/stats":
@@ -229,6 +242,7 @@ async function handleCommand(chatId, command, language = 'en') {
         } else {
           await bot.sendMessage(chatId, getTranslation('error_generic', language));
         }
+        await sendCommandsMessage(chatId, language);
         break;
         
       default:
@@ -241,6 +255,20 @@ async function handleCommand(chatId, command, language = 'en') {
     console.error("Command error:", err);
     const errorMsg = err?.response?.data?.error?.message || err?.message || String(err);
     await bot.sendMessage(chatId, `❌ Error: ${errorMsg}`);
+  }
+}
+
+/**
+ * Send tarot bot commands message
+ * @param {number} chatId - Chat ID
+ * @param {string} language - User language
+ */
+async function sendCommandsMessage(chatId, language = 'en') {
+  try {
+    const commandsText = getTranslation('tarot_bot_commands', language);
+    await bot.sendMessage(chatId, commandsText, { parse_mode: 'HTML' });
+  } catch (error) {
+    console.error('Error sending commands message:', error);
   }
 }
 
