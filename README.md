@@ -86,7 +86,11 @@ A sophisticated Telegram bot that provides personalized tarot readings using AI-
 
 5. **Start the bot**
    ```bash
+   # Development mode
    npm start
+   
+   # Production mode with logging
+   npm run start:prod
    ```
 
 6. **Complete Your Profile** (Optional)
@@ -240,7 +244,9 @@ src/
 | Script | Description |
 |--------|-------------|
 | `npm start` | Start the bot |
+| `npm run start:prod` | Start in production mode with logging |
 | `npm run dev` | Start with nodemon (development) |
+| `npm run debug` | Start in debug mode |
 | `npm run init-db` | Initialize database |
 | `npm test` | Run tests |
 | `npm run test:watch` | Run tests in watch mode |
@@ -260,10 +266,33 @@ npm test -- test-file.test.js
 
 ## 🚀 Deployment
 
+### Production Logging
+
+The bot includes comprehensive logging for production environments:
+
+- **Log Levels**: ERROR, WARN, INFO, DEBUG
+- **Log Files**: Daily rotating log files in `./logs/`
+- **Console Output**: Optional console logging
+- **Performance Tracking**: Reading duration and performance metrics
+- **Error Tracking**: Stack traces and detailed error information
+- **User Activity**: User actions and command usage
+- **AI Requests**: OpenAI API request tracking
+
+**Production Start Command:**
+```bash
+npm run start:prod
+```
+
+This automatically sets:
+- `NODE_ENV=production`
+- `LOG_LEVEL=INFO`
+- `LOG_TO_FILE=true`
+- `LOG_TO_CONSOLE=true`
+
 ### Using PM2
 ```bash
 npm install -g pm2
-pm2 start src/index.js --name tarot-bot
+pm2 start src/index.js --name tarot-bot --env production
 pm2 save
 pm2 startup
 ```
@@ -271,7 +300,7 @@ pm2 startup
 ### Using Docker
 ```bash
 docker build -t tarot-bot .
-docker run -d --name tarot-bot tarot-bot
+docker run -d --name tarot-bot --env-file .env tarot-bot
 ```
 
 ## 📈 Recent Updates

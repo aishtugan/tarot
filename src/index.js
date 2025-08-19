@@ -17,7 +17,10 @@ import {
 } from "./languages/index.js";
 import { surveyManager, shouldCompleteSurvey, getSurveyIntroduction, getSurveyBenefits } from "./survey/index.js";
 import { sendEnhancedReading, sendWelcomeMessage, sendSurveyQuestion } from "./visual/messageHandler.js";
-import logger from "./utils/logger.js";
+import logger, { updateLoggerConfig } from "./utils/logger.js";
+
+// Update logger configuration after environment variables are loaded
+updateLoggerConfig();
 
 // Validate env
 const required = ["OPENAI_API_KEY", "TELEGRAM_BOT_TOKEN"];

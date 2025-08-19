@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
+    "start:prod": "NODE_ENV=production LOG_LEVEL=INFO LOG_TO_FILE=true LOG_TO_CONSOLE=true node src/index.js",
     "dev": "nodemon src/index.js",
     "debug": "node debug.js",
     "debug:verbose": "LOG_LEVEL=DEBUG node debug.js",
