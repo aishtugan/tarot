@@ -1,8 +1,16 @@
 import OpenAI from "openai";
+import logger from './utils/logger.js';
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let client = null;
+
+function getOpenAIClient() {
+  if (!client && process.env.OPENAI_API_KEY) {
+    client = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return client;
+}
 
 /**
  * Ask GPT for a response to userText.
@@ -12,7 +20,18 @@ export async function askGpt(userText) {
   const systemPrompt = process.env.SYSTEM_PROMPT || "You are a helpful assistant.";
   const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
-  const completion = await client.chat.completions.create({
+  // Log the prompts for debugging
+  logger.debug('OpenAI General Request', {
+    userText: userText.substring(0, 100) + (userText.length > 100 ? '...' : ''),
+    systemPrompt
+  });
+
+  const openAIClient = getOpenAIClient();
+  if (!openAIClient) {
+    return "OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.";
+  }
+
+  const completion = await openAIClient.chat.completions.create({
     model,
     messages: [
       { role: "system", content: systemPrompt },
@@ -21,12 +40,20 @@ export async function askGpt(userText) {
     temperature: 0.7,
   });
 
-  return completion.choices?.[0]?.message?.content?.trim() ?? "(no response)";
+  const response = completion.choices?.[0]?.message?.content?.trim() ?? "(no response)";
+  
+  // Log the response
+  logger.debug('OpenAI General Response', {
+    responseLength: response.length,
+    response: response.substring(0, 200) + (response.length > 200 ? '...' : '')
+  });
+
+  return response;
 }
 
 /**
  * Generate tarot reading interpretation using GPT
- * @param {Array} cards - Array of card objects with interpretations
+ * @param {Array} interpretations - Array of card interpretation objects
  * @param {string} spreadName - Name of the spread used
  * @param {string} context - Reading context (love, career, general, etc.)
  * @param {string} userQuestion - User's specific question
@@ -34,17 +61,17 @@ export async function askGpt(userText) {
  * @param {Object} userProfile - User profile information (optional)
  * @returns {string} Enhanced interpretation from GPT
  */
-export async function generateTarotInterpretation(cards, spreadName, context = 'general', userQuestion = '', language = 'en', userProfile = null) {
+export async function generateTarotInterpretation(interpretations, spreadName, context = 'general', userQuestion = '', language = 'en', userProfile = null) {
   const languageInstructions = {
     en: 'Respond in English.',
     ru: 'Отвечай на русском языке.',
     es: 'Responde en español.'
   };
   
-  const systemPrompt = `You are a wise and intuitive tarot reader. Provide concise, meaningful interpretations that fit within 1500 characters.
+  const systemPrompt = `You are a wise and intuitive tarot reader. Provide concise, meaningful interpretations that fit within 1000 characters.
 
 Guidelines:
-- Be concise but insightful (max 1500 characters)
+- Be concise but insightful (max 1000 characters)
 - Focus on the most important messages
 - Use clear, simple language
 - Provide practical guidance
@@ -57,12 +84,11 @@ Format: Brief introduction, key insights, practical guidance.`;
   // Build the user prompt with card information
   let userPrompt = `I've drawn the following cards for a ${context} reading using the ${spreadName} spread:\n\n`;
   
-  cards.forEach((card, index) => {
-    userPrompt += `${index + 1}. ${card.name} (${card.orientation})\n`;
-    userPrompt += `   Position: ${card.positionName || `Card ${index + 1}`}\n`;
-    userPrompt += `   Meaning: ${card.meaning}\n`;
-    if (card.keywords && card.keywords.length > 0) {
-      userPrompt += `   Keywords: ${card.keywords.join(', ')}\n`;
+  interpretations.forEach((interpretation, index) => {
+    userPrompt += `${index + 1}. ${interpretation.name} (${interpretation.orientation})\n`;
+    userPrompt += `   Meaning: ${interpretation.meaning}\n`;
+    if (interpretation.keywords && interpretation.keywords.length > 0) {
+      userPrompt += `   Keywords: ${interpretation.keywords.join(', ')}\n`;
     }
     userPrompt += '\n';
   });
@@ -74,19 +100,34 @@ Format: Brief introduction, key insights, practical guidance.`;
   // Add user profile information if available
   if (userProfile) {
     userPrompt += `User Profile Information:\n`;
+    if (userProfile.gender) userPrompt += `- Gender: ${userProfile.gender}\n`;
     if (userProfile.age_group) userPrompt += `- Age Group: ${userProfile.age_group}\n`;
-    if (userProfile.emotional_state) userPrompt += `- Current Emotional State: ${userProfile.emotional_state}\n`;
-    if (userProfile.life_focus) userPrompt += `- Life Focus: ${userProfile.life_focus}\n`;
-    if (userProfile.relationship_status) userPrompt += `- Relationship Status: ${userProfile.relationship_status}\n`;
-    if (userProfile.career_stage) userPrompt += `- Career Stage: ${userProfile.career_stage}\n`;
     if (userProfile.spiritual_beliefs) userPrompt += `- Spiritual Beliefs: ${userProfile.spiritual_beliefs}\n`;
     userPrompt += '\n';
   }
 
-  userPrompt += `Provide a concise interpretation (max 1500 characters) that connects these cards meaningfully for this ${context} reading. Focus on the most important insights and practical guidance.`;
+  userPrompt += `Provide a concise interpretation (max 1000 characters) that connects these cards meaningfully for this ${context} reading. Focus on the most important insights and practical guidance.`;
+
+  // Log the prompts for debugging
+  logger.debug('OpenAI Tarot Interpretation Request', {
+    context,
+    spreadName,
+    language,
+    cardCount: interpretations.length,
+    userQuestion: userQuestion || 'None',
+    hasUserProfile: !!userProfile
+  });
+  
+  logger.debug('OpenAI System Prompt', { systemPrompt });
+  logger.debug('OpenAI User Prompt', { userPrompt });
 
   try {
-    const completion = await client.chat.completions.create({
+    const openAIClient = getOpenAIClient();
+    if (!openAIClient) {
+      return "OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.";
+    }
+    
+    const completion = await openAIClient.chat.completions.create({
       model: process.env.OPENAI_MODEL || "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
@@ -96,23 +137,31 @@ Format: Brief introduction, key insights, practical guidance.`;
       max_tokens: 500, // Shorter responses for Telegram
     });
 
-    return completion.choices?.[0]?.message?.content?.trim() ?? "Unable to generate interpretation at this time.";
+    const response = completion.choices?.[0]?.message?.content?.trim() ?? "Unable to generate interpretation at this time.";
+    
+    // Log the response
+    logger.debug('OpenAI Tarot Interpretation Response', {
+      responseLength: response.length,
+      response: response.substring(0, 200) + (response.length > 200 ? '...' : '')
+    });
+
+    return response;
   } catch (error) {
-    console.error('Error generating tarot interpretation:', error);
+    logger.errorWithStack('Error generating tarot interpretation', error);
     return "I'm having trouble connecting to my intuitive guidance right now. Please try again in a moment.";
   }
 }
 
 /**
  * Generate personalized advice based on a reading
- * @param {Array} cards - Array of card interpretations
+ * @param {Array} interpretations - Array of card interpretation objects
  * @param {string} context - Reading context
  * @param {string} userQuestion - User's question
  * @param {string} language - Language for response (en, ru, es)
  * @param {Object} userProfile - User profile information (optional)
  * @returns {string} Personalized advice
  */
-export async function generatePersonalizedAdvice(cards, context = 'general', userQuestion = '', language = 'en', userProfile = null) {
+export async function generatePersonalizedAdvice(interpretations, context = 'general', userQuestion = '', language = 'en', userProfile = null) {
   const languageInstructions = {
     en: 'Respond in English.',
     ru: 'Отвечай на русском языке.',
@@ -133,30 +182,44 @@ Format: "💡 Advice: [2-3 numbered points]"`;
 
   let userPrompt = `Based on this ${context} reading:\n\n`;
   
-  cards.forEach((card, index) => {
-    userPrompt += `• ${card.name} (${card.orientation}): ${card.meaning}\n`;
+  interpretations.forEach((interpretation, index) => {
+    userPrompt += `• ${interpretation.name} (${interpretation.orientation}): ${interpretation.meaning}\n`;
   });
 
-  if (userQuestion) {
+    if (userQuestion) {
     userPrompt += `\nThe person asked: "${userQuestion}"\n\n`;
   }
 
   // Add user profile information if available
   if (userProfile) {
     userPrompt += `User Profile Information:\n`;
+    if (userProfile.gender) userPrompt += `- Gender: ${userProfile.gender}\n`;
     if (userProfile.age_group) userPrompt += `- Age Group: ${userProfile.age_group}\n`;
-    if (userProfile.emotional_state) userPrompt += `- Current Emotional State: ${userProfile.emotional_state}\n`;
-    if (userProfile.life_focus) userPrompt += `- Life Focus: ${userProfile.life_focus}\n`;
-    if (userProfile.relationship_status) userPrompt += `- Relationship Status: ${userProfile.relationship_status}\n`;
-    if (userProfile.career_stage) userPrompt += `- Career Stage: ${userProfile.career_stage}\n`;
     if (userProfile.spiritual_beliefs) userPrompt += `- Spiritual Beliefs: ${userProfile.spiritual_beliefs}\n`;
     userPrompt += '\n';
   }
 
   userPrompt += `Provide 2-3 specific, actionable tips (max 800 characters) to help this person move forward positively.`;
 
+  // Log the prompts for debugging
+  logger.debug('OpenAI Personalized Advice Request', {
+    context,
+    language,
+    cardCount: interpretations.length,
+    userQuestion: userQuestion || 'None',
+    hasUserProfile: !!userProfile
+  });
+  
+  logger.debug('OpenAI Advice System Prompt', { systemPrompt });
+  logger.debug('OpenAI Advice User Prompt', { userPrompt });
+
   try {
-    const completion = await client.chat.completions.create({
+    const openAIClient = getOpenAIClient();
+    if (!openAIClient) {
+      return "OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.";
+    }
+    
+    const completion = await openAIClient.chat.completions.create({
       model: process.env.OPENAI_MODEL || "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
@@ -166,22 +229,30 @@ Format: "💡 Advice: [2-3 numbered points]"`;
       max_tokens: 300, // Shorter advice for Telegram
     });
 
-    return completion.choices?.[0]?.message?.content?.trim() ?? "Unable to generate advice at this time.";
+    const response = completion.choices?.[0]?.message?.content?.trim() ?? "Unable to generate advice at this time.";
+    
+    // Log the response
+    logger.debug('OpenAI Personalized Advice Response', {
+      responseLength: response.length,
+      response: response.substring(0, 200) + (response.length > 200 ? '...' : '')
+    });
+
+    return response;
   } catch (error) {
-    console.error('Error generating advice:', error);
+    logger.errorWithStack('Error generating advice', error);
     return "I'm unable to provide specific advice right now. Trust your intuition and take small steps forward.";
   }
 }
 
 /**
  * Answer follow-up questions about a reading
- * @param {Array} cards - Array of card interpretations from the original reading
+ * @param {Array} interpretations - Array of card interpretation objects from the original reading
  * @param {string} followUpQuestion - User's follow-up question
  * @param {string} context - Original reading context
  * @param {string} language - Language for response (en, ru, es)
  * @returns {string} Answer to follow-up question
  */
-export async function answerFollowUpQuestion(cards, followUpQuestion, context = 'general', language = 'en') {
+export async function answerFollowUpQuestion(interpretations, followUpQuestion, context = 'general', language = 'en') {
   const languageInstructions = {
     en: 'Respond in English.',
     ru: 'Отвечай на русском языке.',
@@ -200,15 +271,31 @@ Guidelines:
 
   let userPrompt = `The person received this ${context} reading:\n\n`;
   
-  cards.forEach((card, index) => {
-    userPrompt += `${index + 1}. ${card.name} (${card.orientation}): ${card.meaning}\n`;
+  interpretations.forEach((interpretation, index) => {
+    userPrompt += `${index + 1}. ${interpretation.name} (${interpretation.orientation}): ${interpretation.meaning}\n`;
   });
 
   userPrompt += `\nTheir follow-up question is: "${followUpQuestion}"\n\n`;
   userPrompt += `Provide a concise answer (max 1000 characters) that addresses their question using the wisdom of their original reading.`;
 
+  // Log the prompts for debugging
+  logger.debug('OpenAI Follow-up Question Request', {
+    context,
+    language,
+    cardCount: interpretations.length,
+    followUpQuestion
+  });
+  
+  logger.debug('OpenAI Follow-up System Prompt', { systemPrompt });
+  logger.debug('OpenAI Follow-up User Prompt', { userPrompt });
+
   try {
-    const completion = await client.chat.completions.create({
+    const openAIClient = getOpenAIClient();
+    if (!openAIClient) {
+      return "OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.";
+    }
+    
+    const completion = await openAIClient.chat.completions.create({
       model: process.env.OPENAI_MODEL || "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
@@ -218,9 +305,17 @@ Guidelines:
       max_tokens: 400, // Shorter follow-up answers for Telegram
     });
 
-    return completion.choices?.[0]?.message?.content?.trim() ?? "I'm having trouble connecting to the cards' wisdom right now. Please try again.";
+    const response = completion.choices?.[0]?.message?.content?.trim() ?? "I'm having trouble connecting to the cards' wisdom right now. Please try again.";
+    
+    // Log the response
+    logger.debug('OpenAI Follow-up Question Response', {
+      responseLength: response.length,
+      response: response.substring(0, 200) + (response.length > 200 ? '...' : '')
+    });
+
+    return response;
   } catch (error) {
-    console.error('Error answering follow-up question:', error);
+    logger.errorWithStack('Error answering follow-up question', error);
     return "I'm unable to provide additional insight right now. Trust the guidance you've already received.";
   }
 }

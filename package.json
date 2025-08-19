@@ -7,6 +7,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
+    "debug": "node debug.js",
+    "debug:verbose": "LOG_LEVEL=DEBUG node debug.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -19,7 +21,11 @@
     "deploy:status": "pm2 status",
     "deploy:monit": "pm2 monit",
     "docker:build": "docker build -t tarot-telegram-bot .",
-    "docker:run": "docker run -p 3000:3000 --env-file .env tarot-telegram-bot"
+    "docker:run": "docker run -p 3000:3000 --env-file .env tarot-telegram-bot",
+    "logs:analyze": "node scripts/analyze-logs.js",
+    "logs:clean": "node -e \"import('../src/utils/logManager.js').then(m => m.default.cleanOldLogs())\"",
+    "logs:export": "node -e \"import('../src/utils/logManager.js').then(m => console.log(JSON.stringify(m.default.exportLogs(), null, 2)))\"",
+    "logs:search": "node -e \"import('../src/utils/logManager.js').then(m => console.log(JSON.stringify(m.default.searchLogs(process.argv[1] || 'error'), null, 2)))\""
   },
   "keywords": [],
   "author": "",

@@ -89,10 +89,7 @@ export function updateUserProfile(telegramId, profileData) {
       SET profile_completed = 1,
           gender = ?,
           age_group = ?,
-          emotional_state = ?,
-          relationship_status = ?,
-          career_field = ?,
-          life_goals = ?,
+          spiritual_beliefs = ?,
           updated_at = datetime('now')
       WHERE telegram_id = ?
     `);
@@ -100,10 +97,7 @@ export function updateUserProfile(telegramId, profileData) {
     const result = stmt.run(
       profileData.gender,
       profileData.ageGroup,
-      profileData.emotionalState,
-      profileData.relationshipStatus,
-      profileData.careerField,
-      profileData.lifeGoals,
+      profileData.spiritualBeliefs,
       telegramId
     );
     
@@ -118,8 +112,7 @@ export function updateUserProfile(telegramId, profileData) {
 export function getUserProfile(telegramId) {
   try {
     const stmt = db.prepare(`
-      SELECT gender, age_group, emotional_state, relationship_status, 
-             career_field, life_goals, profile_completed
+      SELECT gender, age_group, spiritual_beliefs, profile_completed
       FROM users 
       WHERE telegram_id = ?
     `);
@@ -132,9 +125,19 @@ export function getUserProfile(telegramId) {
 
 export function isProfileCompleted(telegramId) {
   try {
-    const stmt = db.prepare('SELECT profile_completed FROM users WHERE telegram_id = ?');
+    const stmt = db.prepare('SELECT gender, age_group, spiritual_beliefs FROM users WHERE telegram_id = ?');
     const result = stmt.get(telegramId);
-    return result ? Boolean(result.profile_completed) : false;
+    
+    if (!result) {
+      return false;
+    }
+    
+    // Profile is complete only if all 3 essential fields are filled
+    const hasGender = result.gender && result.gender.trim() !== '';
+    const hasAgeGroup = result.age_group && result.age_group.trim() !== '';
+    const hasSpiritualBeliefs = result.spiritual_beliefs && result.spiritual_beliefs.trim() !== '';
+    
+    return hasGender && hasAgeGroup && hasSpiritualBeliefs;
   } catch (error) {
     console.error('❌ Error checking profile completion:', error);
     return false;
@@ -191,12 +194,70 @@ export function incrementReadingCount(telegramId) {
 
 export function getUserStats(telegramId) {
   try {
-    const stmt = db.prepare(`
-      SELECT readings_count, created_at, last_reading_at
+    // Get user info
+    const userStmt = db.prepare(`
+      SELECT first_name, last_name, username, created_at, readings_count, last_reading_at
       FROM users 
       WHERE telegram_id = ?
     `);
-    return stmt.get(telegramId);
+    const user = userStmt.get(telegramId);
+    
+    if (!user) {
+      return null;
+    }
+    
+    // Get reading statistics
+    const readingStatsStmt = db.prepare(`
+      SELECT 
+        COUNT(*) as total_readings,
+        SUM(CASE WHEN ai_enhanced = 1 THEN 1 ELSE 0 END) as ai_enhanced_readings,
+        SUM(CASE WHEN personalized = 1 THEN 1 ELSE 0 END) as personalized_readings
+      FROM readings 
+      WHERE telegram_id = ?
+    `);
+    const readingStats = readingStatsStmt.get(telegramId);
+    
+    // Get favorite reading types from actual readings
+    const favoriteTypesStmt = db.prepare(`
+      SELECT 
+        reading_type,
+        COUNT(*) as count
+      FROM readings 
+      WHERE telegram_id = ?
+      GROUP BY reading_type
+      ORDER BY count DESC
+      LIMIT 5
+    `);
+    
+    const favoriteTypes = favoriteTypesStmt.all(telegramId);
+    
+    // If no readings found, provide default types
+    if (favoriteTypes.length === 0) {
+      favoriteTypes.push(
+        { reading_type: 'Daily', count: 0 },
+        { reading_type: 'Love', count: 0 },
+        { reading_type: 'Career', count: 0 }
+      );
+    }
+    
+          return {
+        user: {
+          first_name: user.first_name,
+          last_name: user.last_name,
+          username: user.username,
+          created_at: user.created_at
+        },
+        stats: {
+          total_readings: readingStats?.total_readings || 0,
+          ai_enhanced_readings: readingStats?.ai_enhanced_readings || 0,
+          personalized_readings: readingStats?.personalized_readings || 0,
+          reading_types_used: favoriteTypes.length
+        },
+        favoriteTypes: favoriteTypes.map(item => ({
+          type: item.reading_type || 'General',
+          count: item.count
+        }))
+      };
   } catch (error) {
     console.error('❌ Error getting user stats:', error);
     return null;
@@ -208,13 +269,14 @@ export function storeReading(telegramId, readingData) {
   try {
     const stmt = db.prepare(`
       INSERT INTO readings 
-      (telegram_id, question, cards_drawn, interpretation, ai_enhanced, personalized, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+      (telegram_id, question, reading_type, cards_drawn, interpretation, ai_enhanced, personalized, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `);
     
     const result = stmt.run(
       telegramId,
       readingData.question || '',
+      readingData.readingType || 'general',
       JSON.stringify(readingData.cards || []),
       readingData.interpretation || '',
       readingData.aiEnhanced ? 1 : 0,

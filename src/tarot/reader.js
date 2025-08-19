@@ -58,7 +58,7 @@ export class TarotReader {
       // Step 6: Generate AI-enhanced interpretation (if GPT is available)
       let aiEnhancedReading = null;
       try {
-        aiEnhancedReading = await generateTarotInterpretation(cards, spread.name, readingType, userQuestion, language, userProfile);
+        aiEnhancedReading = await generateTarotInterpretation(interpretations, spread.name, readingType, userQuestion, language, userProfile);
         console.log('🤖 AI enhancement applied');
       } catch (error) {
         console.log('⚠️ AI enhancement failed, using standard interpretation');
@@ -67,7 +67,7 @@ export class TarotReader {
       // Step 7: Generate personalized advice
       let personalizedAdvice = null;
       try {
-        personalizedAdvice = await generatePersonalizedAdvice(cards, readingType, userQuestion, language, userProfile);
+        personalizedAdvice = await generatePersonalizedAdvice(interpretations, readingType, userQuestion, language, userProfile);
         console.log('💡 Personalized advice generated');
       } catch (error) {
         console.log('⚠️ Personalized advice failed');
@@ -140,7 +140,7 @@ export class TarotReader {
       // Generate AI-enhanced interpretation
       let aiEnhancedReading = null;
       try {
-        aiEnhancedReading = await generateTarotInterpretation(cards, spreadName, readingType, userQuestion, language);
+        aiEnhancedReading = await generateTarotInterpretation(interpretations, spreadName, readingType, userQuestion, language);
         console.log('🤖 AI enhancement applied');
       } catch (error) {
         console.log('⚠️ AI enhancement failed, using standard interpretation');
@@ -316,7 +316,7 @@ export class TarotReader {
       // Generate AI-enhanced interpretation
       let aiEnhancedReading = null;
       try {
-        aiEnhancedReading = await generateTarotInterpretation(cards, spreadName, 'fullDeck', userQuestion, language);
+        aiEnhancedReading = await generateTarotInterpretation(interpretations, spreadName, 'fullDeck', userQuestion, language);
         console.log('🤖 AI enhancement applied');
       } catch (error) {
         console.log('⚠️ AI enhancement failed, using standard interpretation');
@@ -325,7 +325,7 @@ export class TarotReader {
       // Generate personalized advice
       let personalizedAdvice = null;
       try {
-        personalizedAdvice = await generatePersonalizedAdvice(cards, 'fullDeck', userQuestion, language);
+        personalizedAdvice = await generatePersonalizedAdvice(interpretations, 'fullDeck', userQuestion, language);
         console.log('💡 Personalized advice generated');
       } catch (error) {
         console.log('⚠️ Personalized advice failed');

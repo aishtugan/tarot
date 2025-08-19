@@ -56,10 +56,10 @@ export function detectLanguage(text) {
  * @param {number} telegramId - Telegram user ID
  * @returns {string} Language code
  */
-export async function getUserPreferredLanguage(telegramId) {
+export function getUserPreferredLanguage(telegramId) {
   try {
-    const user = await getUserLanguage(telegramId);
-    return user?.language || 'en';
+    const language = getUserLanguage(telegramId);
+    return language || 'en';
   } catch (error) {
     console.error('Error getting user language:', error);
     return 'en';
@@ -71,12 +71,12 @@ export async function getUserPreferredLanguage(telegramId) {
  * @param {number} telegramId - Telegram user ID
  * @param {string} language - Language code
  */
-export async function setUserPreferredLanguage(telegramId, language) {
+export function setUserPreferredLanguage(telegramId, language) {
   try {
     if (!SUPPORTED_LANGUAGES[language]) {
       throw new Error(`Unsupported language: ${language}`);
     }
-    await setUserLanguage(telegramId, language);
+    setUserLanguage(telegramId, language);
     console.log(`🌍 Language set to ${language} for user ${telegramId}`);
   } catch (error) {
     console.error('Error setting user language:', error);
@@ -313,7 +313,13 @@ const TRANSLATIONS = {
      
      // Reversal-related translations
      reversals_enabled: "🔄 <b>Card Reversals Enabled</b>\n\nYour tarot readings will now include reversed cards, which can provide additional depth and nuance to the interpretations.",
-     reversals_disabled: "🔄 <b>Card Reversals Disabled</b>\n\nYour tarot readings will now show all cards in their upright position for simpler interpretations."
+     reversals_disabled: "🔄 <b>Card Reversals Disabled</b>\n\nYour tarot readings will now show all cards in their upright position for simpler interpretations.",
+     
+     // Profile update translations
+     profile_update_prompt: "Would you like to update your profile information?",
+     profile_update_yes: "Yes, Update Profile",
+     profile_update_no: "No, Keep Current",
+     profile_update_cancelled: "✅ Profile update cancelled. Your current profile information will be kept."
    },
   
   ru: {
@@ -525,7 +531,13 @@ const TRANSLATIONS = {
      
      // Reversal-related translations
      reversals_enabled: "🔄 <b>Перевернутые карты включены</b>\n\nВаши гадания на таро теперь будут включать перевернутые карты, которые могут предоставить дополнительную глубину и нюансы в интерпретациях.",
-     reversals_disabled: "🔄 <b>Перевернутые карты отключены</b>\n\nВаши гадания на таро теперь будут показывать все карты в прямом положении для более простых интерпретаций."
+     reversals_disabled: "🔄 <b>Перевернутые карты отключены</b>\n\nВаши гадания на таро теперь будут показывать все карты в прямом положении для более простых интерпретаций.",
+     
+     // Profile update translations
+     profile_update_prompt: "Хотите ли вы обновить информацию в профиле?",
+     profile_update_yes: "Да, обновить профиль",
+     profile_update_no: "Нет, оставить текущий",
+     profile_update_cancelled: "✅ Обновление профиля отменено. Ваша текущая информация в профиле будет сохранена."
    },
   
   es: {
@@ -737,7 +749,13 @@ const TRANSLATIONS = {
      
      // Reversal-related translations
      reversals_enabled: "🔄 <b>Cartas Invertidas Habilitadas</b>\n\nTus lecturas de tarot ahora incluirán cartas invertidas, que pueden proporcionar profundidad adicional y matices a las interpretaciones.",
-     reversals_disabled: "🔄 <b>Cartas Invertidas Deshabilitadas</b>\n\nTus lecturas de tarot ahora mostrarán todas las cartas en posición derecha para interpretaciones más simples."
+     reversals_disabled: "🔄 <b>Cartas Invertidas Deshabilitadas</b>\n\nTus lecturas de tarot ahora mostrarán todas las cartas en posición derecha para interpretaciones más simples.",
+     
+     // Profile update translations
+     profile_update_prompt: "¿Te gustaría actualizar la información de tu perfil?",
+     profile_update_yes: "Sí, Actualizar Perfil",
+     profile_update_no: "No, Mantener Actual",
+     profile_update_cancelled: "✅ Actualización de perfil cancelada. Se mantendrá la información actual de tu perfil."
    }
  };
 

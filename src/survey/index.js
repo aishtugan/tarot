@@ -4,7 +4,7 @@
 import { getTranslation } from '../languages/index.js';
 import { updateUserProfile, isProfileCompleted } from '../database/users.js';
 
-// Survey questions and options
+// Survey questions and options - Only 3 essential fields
 export const SURVEY_QUESTIONS = {
   gender: {
     key: 'gender',
@@ -58,70 +58,6 @@ export const SURVEY_QUESTIONS = {
       ]
     }
   },
-  emotional_state: {
-    key: 'emotional_state',
-    options: {
-      en: [
-        { value: 'happy_optimistic', label: 'Happy & Optimistic' },
-        { value: 'calm_peaceful', label: 'Calm & Peaceful' },
-        { value: 'anxious_stressed', label: 'Anxious & Stressed' },
-        { value: 'sad_depressed', label: 'Sad & Depressed' },
-        { value: 'confused_uncertain', label: 'Confused & Uncertain' },
-        { value: 'excited_motivated', label: 'Excited & Motivated' }
-      ],
-      ru: [
-        { value: 'happy_optimistic', label: 'Счастливый и оптимистичный' },
-        { value: 'calm_peaceful', label: 'Спокойный и умиротворенный' },
-        { value: 'anxious_stressed', label: 'Тревожный и напряженный' },
-        { value: 'sad_depressed', label: 'Грустный и подавленный' },
-        { value: 'confused_uncertain', label: 'Растерянный и неуверенный' },
-        { value: 'excited_motivated', label: 'Взволнованный и мотивированный' }
-      ],
-      es: [
-        { value: 'happy_optimistic', label: 'Feliz y optimista' },
-        { value: 'calm_peaceful', label: 'Tranquilo y en paz' },
-        { value: 'anxious_stressed', label: 'Ansioso y estresado' },
-        { value: 'sad_depressed', label: 'Triste y deprimido' },
-        { value: 'confused_uncertain', label: 'Confundido e incierto' },
-        { value: 'excited_motivated', label: 'Emocionado y motivado' }
-      ]
-    }
-  },
-  life_focus: {
-    key: 'life_focus',
-    options: {
-      en: [
-        { value: 'love_relationships', label: 'Love & Relationships' },
-        { value: 'career_work', label: 'Career & Work' },
-        { value: 'personal_growth', label: 'Personal Growth' },
-        { value: 'health_wellness', label: 'Health & Wellness' },
-        { value: 'family_home', label: 'Family & Home' },
-        { value: 'spirituality', label: 'Spirituality' },
-        { value: 'financial', label: 'Financial Matters' },
-        { value: 'social_friends', label: 'Social Life & Friends' }
-      ],
-      ru: [
-        { value: 'love_relationships', label: 'Любовь и отношения' },
-        { value: 'career_work', label: 'Карьера и работа' },
-        { value: 'personal_growth', label: 'Личностный рост' },
-        { value: 'health_wellness', label: 'Здоровье и благополучие' },
-        { value: 'family_home', label: 'Семья и дом' },
-        { value: 'spirituality', label: 'Духовность' },
-        { value: 'financial', label: 'Финансовые вопросы' },
-        { value: 'social_friends', label: 'Социальная жизнь и друзья' }
-      ],
-      es: [
-        { value: 'love_relationships', label: 'Amor y relaciones' },
-        { value: 'career_work', label: 'Carrera y trabajo' },
-        { value: 'personal_growth', label: 'Crecimiento personal' },
-        { value: 'health_wellness', label: 'Salud y bienestar' },
-        { value: 'family_home', label: 'Familia y hogar' },
-        { value: 'spirituality', label: 'Espiritualidad' },
-        { value: 'financial', label: 'Asuntos financieros' },
-        { value: 'social_friends', label: 'Vida social y amigos' }
-      ]
-    }
-  },
   spiritual_beliefs: {
     key: 'spiritual_beliefs',
     options: {
@@ -148,70 +84,6 @@ export const SURVEY_QUESTIONS = {
         { value: 'atheist', label: 'Ateo' },
         { value: 'open_minded', label: 'Escéptico de mente abierta' },
         { value: 'not_sure', label: 'No estoy seguro' }
-      ]
-    }
-  },
-  relationship_status: {
-    key: 'relationship_status',
-    options: {
-      en: [
-        { value: 'single', label: 'Single' },
-        { value: 'in_relationship', label: 'In a relationship' },
-        { value: 'married', label: 'Married' },
-        { value: 'divorced', label: 'Divorced' },
-        { value: 'complicated', label: 'It\'s complicated' },
-        { value: 'not_looking', label: 'Not looking for love' }
-      ],
-      ru: [
-        { value: 'single', label: 'Холост/не замужем' },
-        { value: 'in_relationship', label: 'В отношениях' },
-        { value: 'married', label: 'Женат/замужем' },
-        { value: 'divorced', label: 'Разведен/а' },
-        { value: 'complicated', label: 'Сложно' },
-        { value: 'not_looking', label: 'Не ищу любовь' }
-      ],
-      es: [
-        { value: 'single', label: 'Soltero/a' },
-        { value: 'in_relationship', label: 'En una relación' },
-        { value: 'married', label: 'Casado/a' },
-        { value: 'divorced', label: 'Divorciado/a' },
-        { value: 'complicated', label: 'Es complicado' },
-        { value: 'not_looking', label: 'No busco amor' }
-      ]
-    }
-  },
-  career_stage: {
-    key: 'career_stage',
-    options: {
-      en: [
-        { value: 'student', label: 'Student' },
-        { value: 'entry_level', label: 'Entry level' },
-        { value: 'mid_career', label: 'Mid-career' },
-        { value: 'senior_level', label: 'Senior level' },
-        { value: 'entrepreneur', label: 'Entrepreneur' },
-        { value: 'career_change', label: 'Career change' },
-        { value: 'retired', label: 'Retired' },
-        { value: 'unemployed', label: 'Unemployed' }
-      ],
-      ru: [
-        { value: 'student', label: 'Студент' },
-        { value: 'entry_level', label: 'Начинающий специалист' },
-        { value: 'mid_career', label: 'Средний уровень карьеры' },
-        { value: 'senior_level', label: 'Высший уровень' },
-        { value: 'entrepreneur', label: 'Предприниматель' },
-        { value: 'career_change', label: 'Смена карьеры' },
-        { value: 'retired', label: 'На пенсии' },
-        { value: 'unemployed', label: 'Безработный' }
-      ],
-      es: [
-        { value: 'student', label: 'Estudiante' },
-        { value: 'entry_level', label: 'Nivel inicial' },
-        { value: 'mid_career', label: 'Medio de carrera' },
-        { value: 'senior_level', label: 'Nivel senior' },
-        { value: 'entrepreneur', label: 'Emprendedor' },
-        { value: 'career_change', label: 'Cambio de carrera' },
-        { value: 'retired', label: 'Jubilado' },
-        { value: 'unemployed', label: 'Desempleado' }
       ]
     }
   }
@@ -301,15 +173,25 @@ export class SurveyManager {
         selectedValue = matchedOption.value;
       }
     }
-    
-    session.answers[questionKey] = selectedValue;
-    session.currentQuestion++;
 
+    // Store the answer
+    session.answers[questionKey] = selectedValue;
+    
+    // Move to next question
+    session.currentQuestion++;
+    
     // Check if survey is complete
     if (session.currentQuestion >= session.questionKeys.length) {
-      return this.completeSurvey(telegramId);
+      // Survey completed, save to database
+      this.completeSurvey(telegramId);
+      
+      return {
+        status: 'completed',
+        message: getTranslation('survey_completed', session.language)
+      };
     }
-
+    
+    // Return next question
     return {
       status: 'next_question',
       question: this.getCurrentQuestion(telegramId)
@@ -317,27 +199,27 @@ export class SurveyManager {
   }
 
   /**
-   * Complete survey and save profile
+   * Complete survey and save to database
    * @param {number} telegramId - User's Telegram ID
-   * @returns {Object} Completion data
    */
-  async completeSurvey(telegramId) {
+  completeSurvey(telegramId) {
     const session = this.userSessions.get(telegramId);
     if (!session) {
       throw new Error('No active survey session');
     }
 
-    // Save profile to database
-    await updateUserProfile(telegramId, session.answers);
-
-    // Clean up session
-    this.userSessions.delete(telegramId);
-
-    return {
-      status: 'completed',
-      message: getTranslation('survey_completed', session.language),
-      profile: session.answers
+    // Map survey answers to database fields
+    const profileData = {
+      gender: session.answers.gender,
+      ageGroup: session.answers.age_group,
+      spiritualBeliefs: session.answers.spiritual_beliefs
     };
+
+    // Save to database
+    updateUserProfile(telegramId, profileData);
+    
+    // Clear session
+    this.userSessions.delete(telegramId);
   }
 
   /**
@@ -350,66 +232,40 @@ export class SurveyManager {
   }
 
   /**
-   * Cancel user's survey session
+   * Cancel survey for user
    * @param {number} telegramId - User's Telegram ID
    */
   cancelSurvey(telegramId) {
     this.userSessions.delete(telegramId);
   }
-
-  /**
-   * Get survey progress for user
-   * @param {number} telegramId - User's Telegram ID
-   * @returns {Object|null} Survey progress or null
-   */
-  getProgress(telegramId) {
-    const session = this.userSessions.get(telegramId);
-    if (!session) return null;
-
-    return {
-      currentQuestion: session.currentQuestion + 1,
-      totalQuestions: session.questionKeys.length,
-      progress: `${session.currentQuestion + 1}/${session.questionKeys.length}`,
-      completed: session.currentQuestion / session.questionKeys.length
-    };
-  }
 }
 
-// Global survey manager instance
+// Create singleton instance
 export const surveyManager = new SurveyManager();
 
 /**
  * Check if user should complete survey
  * @param {number} telegramId - User's Telegram ID
- * @returns {boolean} True if user should complete survey
+ * @returns {boolean} True if survey should be completed
  */
-export async function shouldCompleteSurvey(telegramId) {
-  return !(await isProfileCompleted(telegramId));
+export function shouldCompleteSurvey(telegramId) {
+  return !isProfileCompleted(telegramId);
 }
 
 /**
- * Get survey introduction message
- * @param {string} language - User's language
- * @returns {string} Introduction message
+ * Get survey introduction text
+ * @param {string} language - User language
+ * @returns {string} Introduction text
  */
 export function getSurveyIntroduction(language = 'en') {
   return getTranslation('survey_introduction', language);
 }
 
 /**
- * Get survey benefits message
- * @param {string} language - User's language
- * @returns {string} Benefits message
+ * Get survey benefits text
+ * @param {string} language - User language
+ * @returns {string} Benefits text
  */
 export function getSurveyBenefits(language = 'en') {
   return getTranslation('survey_benefits', language);
 }
-
-export default {
-  SURVEY_QUESTIONS,
-  SurveyManager,
-  surveyManager,
-  shouldCompleteSurvey,
-  getSurveyIntroduction,
-  getSurveyBenefits
-};

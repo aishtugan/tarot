@@ -130,13 +130,14 @@ tarot-telegram-bot/
 - **Error Handling**: Edge cases and failures tested
 
 ### 🔮 Bot Capabilities
-- **Reading Types**: 5 different reading types
+- **Reading Types**: 5 different reading types (Daily, Love, Career, Quick, Full Deck)
 - **Spread Types**: 6 different tarot spreads
 - **Card Count**: 78 tarot cards with full interpretations
-- **Languages**: 3 supported languages
+- **Languages**: 3 supported languages (English, Russian, Spanish)
 - **Reversal Support**: Full upright/reversed functionality
 - **Response Time**: < 5 seconds for most readings
 - **Message Length**: Optimized for Telegram limits
+- **Simplified Commands**: Direct execution without selection menus
 
 ## 🎯 Business Value
 
@@ -198,6 +199,7 @@ tarot-telegram-bot/
 ## 🎉 Recent Achievements
 
 ### ✅ Latest Fixes (Current)
+- **Simplified Full Deck Command**: Removed selection menu, direct 3-card reading
 - **Fixed Card Reversals**: Resolved property name mismatch
 - **Enhanced Reversal Logic**: Proper 30% reversal chance
 - **Improved User Experience**: Toggle command works correctly
@@ -208,7 +210,7 @@ tarot-telegram-bot/
 - **Multi-language Support**: Complete Russian and Spanish translations
 - **Personal Profile Survey**: Enhanced personalization features
 - **Visual Enhancements**: Real tarot card images
-- **Full Deck Readings**: Comprehensive reading options
+- **Full Deck Readings**: Simplified 3-card reading from complete deck
 - **User Statistics**: Reading history and progress tracking
 
 ---

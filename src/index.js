@@ -17,12 +17,13 @@ import {
 } from "./languages/index.js";
 import { surveyManager, shouldCompleteSurvey, getSurveyIntroduction, getSurveyBenefits } from "./survey/index.js";
 import { sendEnhancedReading, sendWelcomeMessage, sendSurveyQuestion } from "./visual/messageHandler.js";
+import logger from "./utils/logger.js";
 
 // Validate env
 const required = ["OPENAI_API_KEY", "TELEGRAM_BOT_TOKEN"];
 const missing = required.filter((k) => !process.env[k]);
 if (missing.length) {
-  console.error("Missing required env vars:", missing.join(", "));
+  logger.error("Missing required env vars", { missing });
   process.exit(1);
 }
 
@@ -37,15 +38,24 @@ initDatabase();
 
 // Start HTTP server (optional for polling, but handy for deploys)
 app.listen(PORT, () => {
-  console.log(`HTTP server listening on http://localhost:${PORT}`);
+  logger.info(`HTTP server started`, { port: PORT });
 });
 
 // Telegram bot (long polling)
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 
+// Log bot startup
+logger.startup('1.0.0', process.env.NODE_ENV || 'development');
+
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text ?? "";
+
+  // Log incoming message
+  logger.userAction(chatId, 'message_received', { 
+    text: text.substring(0, 100), // Log first 100 chars
+    from: msg.from.username || msg.from.first_name 
+  });
 
   // Register or update user
   try {
@@ -56,15 +66,15 @@ bot.on("message", async (msg) => {
       msg.from.last_name || null
     );
   } catch (error) {
-    console.error('❌ Error registering user:', error.message);
+    logger.errorWithStack('Error registering user', error);
   }
 
   if (!text) {
     return bot.sendMessage(chatId, "Please send text messages only 🙂");
   }
 
-  // Get user's language preference
-  const userLanguage = await getUserPreferredLanguage(chatId);
+      // Get user's language preference
+    const userLanguage = getUserPreferredLanguage(chatId);
   
   // Handle commands
   if (text.startsWith("/")) {
@@ -87,14 +97,19 @@ bot.on("message", async (msg) => {
       return; // Response already handled
     }
     
-    // Check if this is a response to full deck command
-    const deckChoice = await handleFullDeckResponse(chatId, text, userLanguage);
-    if (deckChoice) {
-      return; // Response already handled
-    }
+
+    
+    // Log general reading start
+    logger.userAction(chatId, 'general_reading_started', { 
+      question: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+      language: userLanguage 
+    });
     
     // Perform a general tarot reading based on the user's message
+    const readingStart = Date.now();
     const reading = await tarotReader.performGeneralReading(text, userLanguage, chatId);
+    const readingDuration = Date.now() - readingStart;
+    
     await sendEnhancedReading(bot, chatId, reading, userLanguage, true);
     incrementReadingCount(chatId);
     storeReading(chatId, {
@@ -106,9 +121,13 @@ bot.on("message", async (msg) => {
       aiEnhanced: reading.aiEnhanced || false,
       personalized: reading.personalized || false
     });
+    
+    // Log reading completion
+    logger.readingCompleted(chatId, 'general', reading.cards.length, readingDuration);
+    
     await sendCommandsMessage(chatId, userLanguage);
   } catch (err) {
-    console.error("Bot error:", err);
+    logger.errorWithStack("Bot error", err);
     const errorMsg = err?.response?.data?.error?.message || err?.message || String(err);
     await bot.sendMessage(chatId, getTranslation('error_generic', userLanguage));
   }
@@ -120,16 +139,18 @@ bot.on('callback_query', async (query) => {
   const data = query.data;
   
   try {
-    const userLanguage = await getUserPreferredLanguage(chatId);
+    const userLanguage = getUserPreferredLanguage(chatId);
     
     if (data.startsWith('survey_')) {
       await handleSurveyCallback(chatId, data, userLanguage, query);
+    } else if (data.startsWith('profile_')) {
+      await handleProfileCallback(chatId, data, userLanguage, query);
     }
     
     // Answer the callback query
     await bot.answerCallbackQuery(query.id);
   } catch (error) {
-    console.error('Error handling callback query:', error);
+    logger.errorWithStack('Error handling callback query', error);
     await bot.answerCallbackQuery(query.id, { text: 'Error processing request' });
   }
 });
@@ -142,115 +163,223 @@ async function handleCommand(chatId, command, language = 'en') {
     
     switch (cmd) {
       case "/start":
-        await sendWelcomeMessage(bot, chatId, language);
-        await sendCommandsMessage(chatId, language);
+        try {
+          logger.botCommand(chatId, '/start', true);
+          await sendWelcomeMessage(bot, chatId, language);
+          await sendCommandsMessage(chatId, language);
+        } catch (error) {
+          logger.errorWithStack('Error in start command', error);
+          logger.botCommand(chatId, '/start', false);
+          await bot.sendMessage(chatId, getTranslation('error_generic', language));
+        }
         break;
         
       case "/help":
-        await bot.sendMessage(
-          chatId,
-          getTranslation('help', language),
-          { parse_mode: 'HTML' }
-        );
-        // Don't send commands message after help command
+        try {
+          logger.botCommand(chatId, '/help', true);
+          await bot.sendMessage(
+            chatId,
+            getTranslation('help', language),
+            { parse_mode: 'HTML' }
+          );
+          // Don't send commands message after help command
+        } catch (error) {
+          logger.errorWithStack('Error in help command', error);
+          logger.botCommand(chatId, '/help', false);
+          await bot.sendMessage(chatId, getTranslation('error_generic', language));
+        }
         break;
         
       case "/language":
-        await handleLanguageCommand(chatId, language);
-        await sendCommandsMessage(chatId, language);
+        try {
+          logger.botCommand(chatId, '/language', true);
+          await handleLanguageCommand(chatId, language);
+          await sendCommandsMessage(chatId, language);
+        } catch (error) {
+          logger.errorWithStack('Error in language command', error);
+          logger.botCommand(chatId, '/language', false);
+          await bot.sendMessage(chatId, getTranslation('error_generic', language));
+        }
         break;
         
       case "/daily":
-        const dailyIncludeReversals = getUserReversalPreference(chatId);
-        console.log(`📊 Daily reading - User ${chatId} reversal preference: ${dailyIncludeReversals}`);
-        const dailyReading = await tarotReader.performDailyReading(language, chatId);
-        await sendEnhancedReading(bot, chatId, dailyReading, language, true);
-        incrementReadingCount(chatId);
-        storeReading(chatId, {
-          readingType: 'daily',
-          spreadName: dailyReading.spreadName,
-          cards: dailyReading.cards,
-          interpretation: dailyReading.narrative,
-          userQuestion: dailyReading.userQuestion || '',
-          aiEnhanced: dailyReading.aiEnhanced || false,
-          personalized: dailyReading.personalized || false
-        });
-        await sendCommandsMessage(chatId, language);
+        try {
+          logger.botCommand(chatId, '/daily', true);
+          const dailyIncludeReversals = getUserReversalPreference(chatId);
+          logger.debug(`Daily reading - User ${chatId} reversal preference: ${dailyIncludeReversals}`);
+          
+          const readingStart = Date.now();
+          const dailyReading = await tarotReader.performDailyReading(language, chatId);
+          const readingDuration = Date.now() - readingStart;
+          
+          await sendEnhancedReading(bot, chatId, dailyReading, language, true);
+          incrementReadingCount(chatId);
+          storeReading(chatId, {
+            readingType: 'daily',
+            spreadName: dailyReading.spreadName,
+            cards: dailyReading.cards,
+            interpretation: dailyReading.narrative,
+            userQuestion: dailyReading.userQuestion || '',
+            aiEnhanced: dailyReading.aiEnhanced || false,
+            personalized: dailyReading.personalized || false
+          });
+          
+          logger.readingCompleted(chatId, 'daily', dailyReading.cards.length, readingDuration);
+          await sendCommandsMessage(chatId, language);
+        } catch (error) {
+          logger.errorWithStack('Error in daily reading', error);
+          logger.botCommand(chatId, '/daily', false);
+          await bot.sendMessage(chatId, getTranslation('error_generic', language));
+        }
         break;
         
       case "/love":
-        const loveReading = await tarotReader.performLoveReading('', language, chatId);
-        await sendEnhancedReading(bot, chatId, loveReading, language, true);
-        incrementReadingCount(chatId);
-        storeReading(chatId, {
-          readingType: 'love',
-          spreadName: loveReading.spreadName,
-          cards: loveReading.cards,
-          interpretation: loveReading.narrative,
-          userQuestion: loveReading.userQuestion || '',
-          aiEnhanced: loveReading.aiEnhanced || false,
-          personalized: loveReading.personalized || false
-        });
-        await sendCommandsMessage(chatId, language);
+        try {
+          logger.botCommand(chatId, '/love', true);
+          const readingStart = Date.now();
+          const loveReading = await tarotReader.performLoveReading('', language, chatId);
+          const readingDuration = Date.now() - readingStart;
+          
+          await sendEnhancedReading(bot, chatId, loveReading, language, true);
+          incrementReadingCount(chatId);
+          storeReading(chatId, {
+            readingType: 'love',
+            spreadName: loveReading.spreadName,
+            cards: loveReading.cards,
+            interpretation: loveReading.narrative,
+            userQuestion: loveReading.userQuestion || '',
+            aiEnhanced: loveReading.aiEnhanced || false,
+            personalized: loveReading.personalized || false
+          });
+          
+          logger.readingCompleted(chatId, 'love', loveReading.cards.length, readingDuration);
+          await sendCommandsMessage(chatId, language);
+        } catch (error) {
+          logger.errorWithStack('Error in love reading', error);
+          logger.botCommand(chatId, '/love', false);
+          await bot.sendMessage(chatId, getTranslation('error_generic', language));
+        }
         break;
         
       case "/career":
-        const careerReading = await tarotReader.performCareerReading('', language, chatId);
-        await sendEnhancedReading(bot, chatId, careerReading, language, true);
-        incrementReadingCount(chatId);
-        storeReading(chatId, {
-          readingType: 'career',
-          spreadName: careerReading.spreadName,
-          cards: careerReading.cards,
-          interpretation: careerReading.narrative,
-          userQuestion: careerReading.userQuestion || '',
-          aiEnhanced: careerReading.aiEnhanced || false,
-          personalized: careerReading.personalized || false
-        });
-        await sendCommandsMessage(chatId, language);
+        try {
+          logger.botCommand(chatId, '/career', true);
+          const readingStart = Date.now();
+          const careerReading = await tarotReader.performCareerReading('', language, chatId);
+          const readingDuration = Date.now() - readingStart;
+          
+          await sendEnhancedReading(bot, chatId, careerReading, language, true);
+          incrementReadingCount(chatId);
+          storeReading(chatId, {
+            readingType: 'career',
+            spreadName: careerReading.spreadName,
+            cards: careerReading.cards,
+            interpretation: careerReading.narrative,
+            userQuestion: careerReading.userQuestion || '',
+            aiEnhanced: careerReading.aiEnhanced || false,
+            personalized: careerReading.personalized || false
+          });
+          
+          logger.readingCompleted(chatId, 'career', careerReading.cards.length, readingDuration);
+          await sendCommandsMessage(chatId, language);
+        } catch (error) {
+          logger.errorWithStack('Error in career reading', error);
+          logger.botCommand(chatId, '/career', false);
+          await bot.sendMessage(chatId, getTranslation('error_generic', language));
+        }
         break;
         
       case "/quick":
-        const quickIncludeReversals = getUserReversalPreference(chatId);
-        console.log(`📊 Quick reading - User ${chatId} reversal preference: ${quickIncludeReversals}`);
-        const quickReading = await tarotReader.performQuickReading('general', '', language, quickIncludeReversals, chatId);
-        
-        await sendEnhancedReading(bot, chatId, quickReading, language, true);
-        incrementReadingCount(chatId);
-        storeReading(chatId, {
-          readingType: 'quick',
-          spreadName: quickReading.spreadName || 'Quick 3-Card Spread',
-          cards: quickReading.cards || [],
-          interpretation: quickReading.narrative || quickReading.interpretation,
-          userQuestion: quickReading.userQuestion || '',
-          aiEnhanced: quickReading.aiEnhanced || false,
-          personalized: quickReading.personalized || false
-        });
-        await sendCommandsMessage(chatId, language);
+        try {
+          logger.botCommand(chatId, '/quick', true);
+          const quickIncludeReversals = getUserReversalPreference(chatId);
+          logger.debug(`Quick reading - User ${chatId} reversal preference: ${quickIncludeReversals}`);
+          
+          const readingStart = Date.now();
+          const quickReading = await tarotReader.performQuickReading('general', '', language, quickIncludeReversals, chatId);
+          const readingDuration = Date.now() - readingStart;
+          
+          await sendEnhancedReading(bot, chatId, quickReading, language, true);
+          incrementReadingCount(chatId);
+          storeReading(chatId, {
+            readingType: 'quick',
+            spreadName: quickReading.spreadName || 'Quick 3-Card Spread',
+            cards: quickReading.cards || [],
+            interpretation: quickReading.narrative || quickReading.interpretation,
+            userQuestion: quickReading.userQuestion || '',
+            aiEnhanced: quickReading.aiEnhanced || false,
+            personalized: quickReading.personalized || false
+          });
+          
+          logger.readingCompleted(chatId, 'quick', quickReading.cards.length, readingDuration);
+          await sendCommandsMessage(chatId, language);
+        } catch (error) {
+          logger.errorWithStack('Error in quick reading', error);
+          logger.botCommand(chatId, '/quick', false);
+          await bot.sendMessage(chatId, getTranslation('error_generic', language));
+        }
         break;
         
       case "/fulldeck":
-        await handleFullDeckCommand(chatId, language);
-        await sendCommandsMessage(chatId, language);
+        try {
+          logger.botCommand(chatId, '/fulldeck', true);
+          const readingStart = Date.now();
+          const reading = await handleFullDeckCommand(chatId, language);
+          const readingDuration = Date.now() - readingStart;
+          
+          // Log reading completion with duration
+          if (reading) {
+            logger.readingCompleted(chatId, 'fulldeck', reading.cards.length, readingDuration);
+          }
+          
+          await sendCommandsMessage(chatId, language);
+        } catch (error) {
+          logger.errorWithStack('Error in full deck command', error);
+          logger.botCommand(chatId, '/fulldeck', false);
+          await bot.sendMessage(chatId, getTranslation('error_generic', language));
+        }
         break;
         
       case "/profile":
-        await handleProfileCommand(chatId, language);
-        await sendCommandsMessage(chatId, language);
+        try {
+          logger.botCommand(chatId, '/profile', true);
+          await handleProfileCommand(chatId, language);
+          await sendCommandsMessage(chatId, language);
+        } catch (error) {
+          logger.errorWithStack('Error in profile command', error);
+          logger.botCommand(chatId, '/profile', false);
+          await bot.sendMessage(chatId, getTranslation('error_generic', language));
+        }
         break;
         
       case "/reversals":
-        await handleReversalToggleCommand(chatId, language);
-        await sendCommandsMessage(chatId, language);
+        try {
+          logger.botCommand(chatId, '/reversals', true);
+          await handleReversalToggleCommand(chatId, language);
+          await sendCommandsMessage(chatId, language);
+        } catch (error) {
+          logger.errorWithStack('Error in reversals command', error);
+          logger.botCommand(chatId, '/reversals', false);
+          await bot.sendMessage(chatId, getTranslation('error_generic', language));
+        }
         break;
         
       case "/stats":
-        const userStats = getUserStats(chatId);
-        if (userStats) {
-          const statsText = formatUserStats(userStats, language);
-          await sendSafeMessage(chatId, statsText, {}, language);
-        } else {
+        try {
+          logger.botCommand(chatId, '/stats', true);
+          const userStats = getUserStats(chatId);
+          if (userStats) {
+            const statsText = formatUserStats(userStats, language);
+            await sendSafeMessage(chatId, statsText, {}, language);
+            logger.userAction(chatId, 'stats_viewed', { stats: userStats.stats });
+          } else {
+            await bot.sendMessage(chatId, getTranslation('error_generic', language));
+            logger.botCommand(chatId, '/stats', false);
+          }
+        } catch (error) {
+          logger.errorWithStack('Error in stats command', error);
           await bot.sendMessage(chatId, getTranslation('error_generic', language));
+          logger.botCommand(chatId, '/stats', false);
         }
         await sendCommandsMessage(chatId, language);
         break;
@@ -262,7 +391,7 @@ async function handleCommand(chatId, command, language = 'en') {
         );
     }
   } catch (err) {
-    console.error("Command error:", err);
+    logger.errorWithStack("Command error", err);
     const errorMsg = err?.response?.data?.error?.message || err?.message || String(err);
     await bot.sendMessage(chatId, `❌ Error: ${errorMsg}`);
   }
@@ -349,7 +478,7 @@ async function handleLanguageResponse(chatId, text, currentLanguage) {
       const selectedLanguage = languages[choice - 1];
       
       // Set user's language preference
-      await setUserPreferredLanguage(chatId, selectedLanguage);
+      setUserPreferredLanguage(chatId, selectedLanguage);
       
       // Send confirmation message in the new language
       const confirmationMessage = getTranslation('language_changed', selectedLanguage, { 
@@ -364,15 +493,15 @@ async function handleLanguageResponse(chatId, text, currentLanguage) {
     // Check if this looks like a language name
     const lowerText = text.toLowerCase();
     if (lowerText.includes('english') || lowerText.includes('английский') || lowerText.includes('inglés')) {
-      await setUserPreferredLanguage(chatId, 'en');
+      setUserPreferredLanguage(chatId, 'en');
       await bot.sendMessage(chatId, getTranslation('language_changed', 'en', { language: 'English' }), { parse_mode: 'HTML' });
       return true;
     } else if (lowerText.includes('русский') || lowerText.includes('russian')) {
-      await setUserPreferredLanguage(chatId, 'ru');
+      setUserPreferredLanguage(chatId, 'ru');
       await bot.sendMessage(chatId, getTranslation('language_changed', 'ru', { language: 'Русский' }), { parse_mode: 'HTML' });
       return true;
     } else if (lowerText.includes('español') || lowerText.includes('spanish') || lowerText.includes('испанский')) {
-      await setUserPreferredLanguage(chatId, 'es');
+      setUserPreferredLanguage(chatId, 'es');
       await bot.sendMessage(chatId, getTranslation('language_changed', 'es', { language: 'Español' }), { parse_mode: 'HTML' });
       return true;
     }
@@ -385,127 +514,45 @@ async function handleLanguageResponse(chatId, text, currentLanguage) {
 }
 
 /**
- * Handle full deck reading command with interactive options
+ * Handle full deck reading command - automatically performs full deck reading
  * @param {number} chatId - Chat ID
  * @param {string} language - User language
+ * @returns {Object} Reading object
  */
 async function handleFullDeckCommand(chatId, language) {
   try {
-    const deckTypes = [
-      { value: 'full', label: getTranslation('fulldeck_full', language) },
-      { value: 'majors', label: getTranslation('fulldeck_majors', language) },
-      { value: 'wands', label: getTranslation('fulldeck_wands', language) },
-      { value: 'cups', label: getTranslation('fulldeck_cups', language) },
-      { value: 'swords', label: getTranslation('fulldeck_swords', language) },
-      { value: 'pentacles', label: getTranslation('fulldeck_pentacles', language) }
-    ];
-    
-    let message = getTranslation('fulldeck_options', language) + '\n\n';
-    
-    deckTypes.forEach((type, index) => {
-      message += `${index + 1}. <b>${type.label}</b>\n\n`;
+    // Automatically perform full deck reading (Majors + Minors)
+    const reading = await tarotReader.performFullDeckReading({
+      deckType: 'full',
+      cardCount: 3,
+      userQuestion: '',
+      includeReversals: true,
+      includeMinors: true,
+      language: language
     });
     
-    message += getTranslation('choose_option', language);
+    await sendEnhancedReading(bot, chatId, reading, language, true);
+    incrementReadingCount(chatId);
+    storeReading(chatId, {
+      readingType: 'fulldeck',
+      spreadName: reading.spreadName,
+      cards: reading.cards,
+      interpretation: reading.narrative,
+      userQuestion: reading.userQuestion || '',
+      aiEnhanced: reading.aiEnhanced || false,
+      personalized: reading.personalized || false
+    });
     
-    await bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
+    return reading;
     
   } catch (error) {
     console.error('Error in full deck command:', error);
     await bot.sendMessage(chatId, getTranslation('error_generic', language));
+    return null;
   }
 }
 
-/**
- * Handle response to full deck command
- * @param {number} chatId - Chat ID
- * @param {string} text - User's response text
- * @param {string} language - User language
- * @returns {boolean} True if response was handled
- */
-async function handleFullDeckResponse(chatId, text, language) {
-  try {
-    // Check if this looks like a deck choice (number 1-6)
-    const choice = parseInt(text.trim());
-    if (choice >= 1 && choice <= 6) {
-      const deckTypes = ['full', 'majors', 'wands', 'cups', 'swords', 'pentacles'];
-      const selectedDeck = deckTypes[choice - 1];
-      
-      // Perform the full deck reading
-      const reading = await tarotReader.performFullDeckReading({
-        deckType: selectedDeck,
-        cardCount: 3,
-        userQuestion: '',
-        includeReversals: true,
-        includeMinors: selectedDeck === 'full',
-        language: language
-      });
-      
-      const readingText = tarotReader.formatReadingForDisplay(reading, language);
-      await sendSafeMessage(chatId, readingText, {}, language);
-      
-      incrementReadingCount(chatId);
-      storeReading(chatId, {
-        readingType: 'fulldeck',
-        spreadName: reading.spreadName,
-        cards: reading.cards,
-        interpretation: reading.narrative,
-        userQuestion: reading.userQuestion || '',
-        aiEnhanced: reading.aiEnhanced || false,
-        personalized: reading.personalized || false
-      });
-      
-      return true; // Response handled
-    }
-    
-    // Check if this looks like a question for full deck reading
-    const questionKeywords = ['full deck', 'complete deck', 'all cards', 'majors', 'minors', 'wands', 'cups', 'swords', 'pentacles'];
-    const isFullDeckQuestion = questionKeywords.some(keyword => 
-      text.toLowerCase().includes(keyword)
-    );
-    
-    if (isFullDeckQuestion) {
-      // Determine deck type from question
-      let deckType = 'full';
-      if (text.toLowerCase().includes('majors')) deckType = 'majors';
-      else if (text.toLowerCase().includes('wands')) deckType = 'wands';
-      else if (text.toLowerCase().includes('cups')) deckType = 'cups';
-      else if (text.toLowerCase().includes('swords')) deckType = 'swords';
-      else if (text.toLowerCase().includes('pentacles')) deckType = 'pentacles';
-      
-      // Perform the full deck reading
-      const reading = await tarotReader.performFullDeckReading({
-        deckType,
-        cardCount: 3,
-        userQuestion: text,
-        includeReversals: true,
-        includeMinors: deckType === 'full',
-        language: language
-      });
-      
-      const readingText = tarotReader.formatReadingForDisplay(reading, language);
-      await sendSafeMessage(chatId, readingText, {}, language);
-      
-      incrementReadingCount(chatId);
-      storeReading(chatId, {
-        readingType: 'fulldeck',
-        spreadName: reading.spreadName,
-        cards: reading.cards,
-        interpretation: reading.narrative,
-        userQuestion: text,
-        aiEnhanced: reading.aiEnhanced || false,
-        personalized: reading.personalized || false
-      });
-      
-      return true; // Response handled
-    }
-    
-    return false; // Not a full deck response
-  } catch (error) {
-    console.error('Error handling full deck response:', error);
-    return false;
-  }
-}
+
 
 
 /**
@@ -531,9 +578,11 @@ function formatUserStats(userStats, language = 'en') {
   if (favoriteTypes && favoriteTypes.length > 0) {
     text += getTranslation('stats_favorites', language) + '\n';
     favoriteTypes.forEach((type, index) => {
+      // Capitalize the first letter of the reading type
+      const typeName = type.type.charAt(0).toUpperCase() + type.type.slice(1);
       text += getTranslation('stats_favorite_item', language, { 
         index: index + 1, 
-        type: type.reading_type, 
+        type: typeName, 
         count: type.count 
       }) + '\n';
     });
@@ -567,11 +616,27 @@ async function handleProfileCommand(chatId, language = 'en') {
       await bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
       await sendSurveyQuestion(bot, chatId, firstQuestion, language);
     } else {
-      // User has completed profile, show current profile
+      // User has completed profile, show current profile with update option
       const profile = await getUserProfile(chatId);
       const profileText = formatUserProfile(profile, language);
       
-      await bot.sendMessage(chatId, profileText, { parse_mode: 'HTML' });
+      // Add update option
+      const updateMessage = profileText + '\n\n' + getTranslation('profile_update_prompt', language);
+      
+      // Create inline keyboard for update option
+      const keyboard = {
+        inline_keyboard: [
+          [
+            { text: getTranslation('profile_update_yes', language), callback_data: 'profile_update' },
+            { text: getTranslation('profile_update_no', language), callback_data: 'profile_cancel' }
+          ]
+        ]
+      };
+      
+      await bot.sendMessage(chatId, updateMessage, { 
+        parse_mode: 'HTML',
+        reply_markup: keyboard
+      });
     }
   } catch (error) {
     console.error('Error handling profile command:', error);
@@ -611,6 +676,35 @@ async function handleReversalToggleCommand(chatId, language = 'en') {
     console.log(`✅ Reversal toggle completed successfully`);
   } catch (error) {
     console.error('Error handling reversal toggle command:', error);
+    await bot.sendMessage(chatId, getTranslation('error_generic', language));
+  }
+}
+
+/**
+ * Handle profile callback queries (button clicks)
+ * @param {number} chatId - Chat ID
+ * @param {string} data - Callback data
+ * @param {string} language - User language
+ * @param {Object} query - Callback query object
+ */
+async function handleProfileCallback(chatId, data, language, query) {
+  try {
+    if (data === 'profile_update') {
+      // Start survey for profile update
+      const intro = getSurveyIntroduction(language);
+      const message = `${intro}\n\n${getTranslation('survey_start', language)}`;
+      
+      // Start survey
+      const firstQuestion = surveyManager.startSurvey(chatId, language);
+      
+      await bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
+      await sendSurveyQuestion(bot, chatId, firstQuestion, language);
+    } else if (data === 'profile_cancel') {
+      // User chose not to update profile
+      await bot.sendMessage(chatId, getTranslation('profile_update_cancelled', language), { parse_mode: 'HTML' });
+    }
+  } catch (error) {
+    console.error('Error handling profile callback:', error);
     await bot.sendMessage(chatId, getTranslation('error_generic', language));
   }
 }
@@ -736,16 +830,25 @@ function formatUserProfile(profile, language = 'en') {
   
   let text = "👤 **Your Profile**\n\n";
   
-  // Add profile fields if they exist
+  // Add only essential profile fields
   if (profile.gender) text += `Gender: ${profile.gender}\n`;
   if (profile.age_group) text += `Age Group: ${profile.age_group}\n`;
-  if (profile.emotional_state) text += `Emotional State: ${profile.emotional_state}\n`;
-  if (profile.life_focus) text += `Life Focus: ${profile.life_focus}\n`;
   if (profile.spiritual_beliefs) text += `Spiritual Beliefs: ${profile.spiritual_beliefs}\n`;
-  if (profile.relationship_status) text += `Relationship Status: ${profile.relationship_status}\n`;
-  if (profile.career_stage) text += `Career Stage: ${profile.career_stage}\n`;
   
-  text += `\n✅ Profile completed: ${profile.profile_completed ? 'Yes' : 'No'}`;
+  // Check if all essential fields are completed
+  const hasGender = profile.gender && profile.gender.trim() !== '';
+  const hasAgeGroup = profile.age_group && profile.age_group.trim() !== '';
+  const hasSpiritualBeliefs = profile.spiritual_beliefs && profile.spiritual_beliefs.trim() !== '';
+  const isCompleted = hasGender && hasAgeGroup && hasSpiritualBeliefs;
+  
+  text += `\n✅ Profile completed: ${isCompleted ? 'Yes' : 'No'}`;
+  
+  if (!isCompleted) {
+    text += `\n\n💡 Complete your profile by filling in all fields:`;
+    if (!hasGender) text += `\n  • Gender`;
+    if (!hasAgeGroup) text += `\n  • Age Group`;
+    if (!hasSpiritualBeliefs) text += `\n  • Spiritual Beliefs`;
+  }
   
   return text;
 }

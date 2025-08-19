@@ -45,6 +45,7 @@ function createTables() {
         relationship_status TEXT,
         career_field TEXT,
         life_goals TEXT,
+        spiritual_beliefs TEXT,
         readings_count INTEGER DEFAULT 0,
         last_reading_at DATETIME,
         include_reversals BOOLEAN DEFAULT TRUE,
@@ -62,11 +63,19 @@ function createTables() {
       'relationship_status',
       'career_field',
       'life_goals',
+      'spiritual_beliefs',
       'readings_count',
       'last_reading_at',
       'include_reversals',
       'updated_at'
     ];
+    
+    // Add reading_type column to readings table if it doesn't exist
+    try {
+      db.exec(`ALTER TABLE readings ADD COLUMN reading_type TEXT DEFAULT 'general'`);
+    } catch (error) {
+      // Column already exists, ignore error
+    }
     
     columns.forEach(column => {
       try {
@@ -82,6 +91,7 @@ function createTables() {
         id INTEGER PRIMARY KEY,
         telegram_id INTEGER NOT NULL,
         question TEXT,
+        reading_type TEXT DEFAULT 'general',
         cards_drawn TEXT NOT NULL,
         interpretation TEXT,
         ai_enhanced BOOLEAN DEFAULT FALSE,

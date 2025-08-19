@@ -32,7 +32,7 @@ The bot provides authentic tarot readings with the following capabilities:
 3. **Career Reading** (`/career`) - 5-card professional guidance
 4. **Quick Reading** (`/quick`) - 3-card reading for immediate insights
 5. **General Reading** - Ask any question for personalized guidance
-6. **Full Deck Reading** - Advanced options with deck selection
+6. **Full Deck Reading** (`/fulldeck`) - 3-card reading from complete deck (Majors + Minors)
 
 #### **Card Reversal System**
 - **Toggle Command** (`/reversals`) - Enable/disable reversed card interpretations
@@ -54,10 +54,10 @@ The bot provides authentic tarot readings with the following capabilities:
 - Automatic language detection and persistence
 
 #### **Personal Profile Survey**
-- **Enhanced Personalization** - 7-question survey for better readings
+- **Enhanced Personalization** - 3-question survey for better readings
 - **Multi-language Support** - Survey available in all languages
 - **Optional Feature** - Users can complete at their own pace
-- **Profile Data**: Gender, age, emotional state, life focus, relationship status, career stage, spiritual beliefs
+- **Profile Data**: Gender, age group, spiritual beliefs
 
 #### **Visual Enhancements**
 - **Real Tarot Card Images** - Authentic Rider-Waite-Smith deck
@@ -233,6 +233,11 @@ The bot provides authentic tarot readings with the following capabilities:
   - Input: `/quick` command
   - Expected: 3-card reading for immediate guidance
   - Validation: Fast response with accurate interpretation
+
+- **Full Deck Reading Test**
+  - Input: `/fulldeck` command
+  - Expected: 3-card reading from complete deck (Majors + Minors)
+  - Validation: No selection menu, direct execution
 
 #### **2. Card Reversal System**
 - **Reversal Toggle Test**
@@ -436,14 +441,15 @@ The bot provides authentic tarot readings with the following capabilities:
 - **AI Integration** - GPT-powered interpretations active
 - **Multi-Language Support** - Complete English, Russian, Spanish support
 - **Card Reversal System** - Full toggle functionality with user preferences
-- **Personal Profile Survey** - 7-question survey with multi-language support
+- **Personal Profile Survey** - 3-question survey with multi-language support
 - **Visual Enhancements** - Real tarot card images and professional formatting
 - **User Statistics** - Complete reading history and statistics
-- **Full Deck Readings** - Advanced reading options
+- **Full Deck Readings** - Simplified 3-card reading from complete deck
 - **Translation Fixes** - Card meanings display properly
 - **Error Handling** - Robust error management and fallbacks
 
 ### **🔧 Recent Fixes**
+- **Simplified Full Deck Command** - Removed selection menu, direct 3-card reading
 - **Card Reversal System** - Fixed property name mismatch (card.isReversed vs card.reversed)
 - **Enhanced Reversal Logic** - Proper 30% reversal chance and user preference persistence
 - **Improved User Experience** - Toggle command works correctly in both directions

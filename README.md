@@ -103,6 +103,7 @@ A sophisticated Telegram bot that provides personalized tarot readings using AI-
 | `/love` | Love and relationship guidance |
 | `/career` | Career and professional advice |
 | `/quick` | Quick 3-card reading |
+| `/fulldeck` | Full deck reading (Majors + Minors) |
 | `/reversals` | Toggle card reversals on/off |
 | `/language` | Change bot language |
 | `/stats` | View your reading statistics |
@@ -137,9 +138,10 @@ A sophisticated Telegram bot that provides personalized tarot readings using AI-
 - Comprehensive advice and insights
 
 ### **Full Deck Reading**
-- **Full Deck** - Complete 78-card reading
-- **Major Arcana Only** - 22 major arcana cards
-- **Suit-Focused** - Choose specific suit (Wands, Cups, Swords, Pentacles)
+- Complete deck reading (Major + Minor Arcana)
+- 3-card spread with comprehensive interpretation
+- No selection menu - automatically uses full deck
+
 
 ## 🔄 Card Reversals
 
