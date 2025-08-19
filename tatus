@@ -1,0 +1,109 @@
+warning: in the working copy of 'src/gpt.js', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/src/gpt.js b/src/gpt.js[m
+[1mindex d4a56ae..9530d93 100644[m
+[1m--- a/src/gpt.js[m
+[1m+++ b/src/gpt.js[m
+[36m@@ -21,7 +21,7 @@[m [mexport async function askGpt(userText) {[m
+   const model = process.env.OPENAI_MODEL || "gpt-4o-mini";[m
+ [m
+   // Log the prompts for debugging[m
+[31m-  logger.debug('OpenAI General Request', {[m
+[32m+[m[32m  logger.info('OpenAI General Request', {[m
+     userText: userText.substring(0, 100) + (userText.length > 100 ? '...' : ''),[m
+     systemPrompt[m
+   });[m
+[36m@@ -43,7 +43,7 @@[m [mexport async function askGpt(userText) {[m
+   const response = completion.choices?.[0]?.message?.content?.trim() ?? "(no response)";[m
+   [m
+   // Log the response[m
+[31m-  logger.debug('OpenAI General Response', {[m
+[32m+[m[32m  logger.info('OpenAI General Response', {[m
+     responseLength: response.length,[m
+     response: response.substring(0, 200) + (response.length > 200 ? '...' : '')[m
+   });[m
+[36m@@ -109,7 +109,7 @@[m [mFormat: Brief introduction, key insights, practical guidance.`;[m
+   userPrompt += `Provide a concise interpretation (max 1000 characters) that connects these cards meaningfully for this ${context} reading. Focus on the most important insights and practical guidance.`;[m
+ [m
+   // Log the prompts for debugging[m
+[31m-  logger.debug('OpenAI Tarot Interpretation Request', {[m
+[32m+[m[32m  logger.info('OpenAI Tarot Interpretation Request', {[m
+     context,[m
+     spreadName,[m
+     language,[m
+[36m@@ -118,8 +118,8 @@[m [mFormat: Brief introduction, key insights, practical guidance.`;[m
+     hasUserProfile: !!userProfile[m
+   });[m
+   [m
+[31m-  logger.debug('OpenAI System Prompt', { systemPrompt });[m
+[31m-  logger.debug('OpenAI User Prompt', { userPrompt });[m
+[32m+[m[32m  logger.info('OpenAI System Prompt', { systemPrompt });[m
+[32m+[m[32m  logger.info('OpenAI User Prompt', { userPrompt });[m
+ [m
+   try {[m
+     const openAIClient = getOpenAIClient();[m
+[36m@@ -140,7 +140,7 @@[m [mFormat: Brief introduction, key insights, practical guidance.`;[m
+     const response = completion.choices?.[0]?.message?.content?.trim() ?? "Unable to generate interpretation at this time.";[m
+     [m
+     // Log the response[m
+[31m-    logger.debug('OpenAI Tarot Interpretation Response', {[m
+[32m+[m[32m    logger.info('OpenAI Tarot Interpretation Response', {[m
+       responseLength: response.length,[m
+       response: response.substring(0, 200) + (response.length > 200 ? '...' : '')[m
+     });[m
+[36m@@ -202,7 +202,7 @@[m [mFormat: "💡 Advice: [2-3 numbered points]"`;[m
+   userPrompt += `Provide 2-3 specific, actionable tips (max 800 characters) to help this person move forward positively.`;[m
+ [m
+   // Log the prompts for debugging[m
+[31m-  logger.debug('OpenAI Personalized Advice Request', {[m
+[32m+[m[32m  logger.info('OpenAI Personalized Advice Request', {[m
+     context,[m
+     language,[m
+     cardCount: interpretations.length,[m
+[36m@@ -210,8 +210,8 @@[m [mFormat: "💡 Advice: [2-3 numbered points]"`;[m
+     hasUserProfile: !!userProfile[m
+   });[m
+   [m
+[31m-  logger.debug('OpenAI Advice System Prompt', { systemPrompt });[m
+[31m-  logger.debug('OpenAI Advice User Prompt', { userPrompt });[m
+[32m+[m[32m  logger.info('OpenAI Advice System Prompt', { systemPrompt });[m
+[32m+[m[32m  logger.info('OpenAI Advice User Prompt', { userPrompt });[m
+ [m
+   try {[m
+     const openAIClient = getOpenAIClient();[m
+[36m@@ -232,7 +232,7 @@[m [mFormat: "💡 Advice: [2-3 numbered points]"`;[m
+     const response = completion.choices?.[0]?.message?.content?.trim() ?? "Unable to generate advice at this time.";[m
+     [m
+     // Log the response[m
+[31m-    logger.debug('OpenAI Personalized Advice Response', {[m
+[32m+[m[32m    logger.info('OpenAI Personalized Advice Response', {[m
+       responseLength: response.length,[m
+       response: response.substring(0, 200) + (response.length > 200 ? '...' : '')[m
+     });[m
+[36m@@ -279,15 +279,15 @@[m [mGuidelines:[m
+   userPrompt += `Provide a concise answer (max 1000 characters) that addresses their question using the wisdom of their original reading.`;[m
+ [m
+   // Log the prompts for debugging[m
+[31m-  logger.debug('OpenAI Follow-up Question Request', {[m
+[32m+[m[32m  logger.info('OpenAI Follow-up Question Request', {[m
+     context,[m
+     language,[m
+     cardCount: interpretations.length,[m
+     followUpQuestion[m
+   });[m
+   [m
+[31m-  logger.debug('OpenAI Follow-up System Prompt', { systemPrompt });[m
+[31m-  logger.debug('OpenAI Follow-up User Prompt', { userPrompt });[m
+[32m+[m[32m  logger.info('OpenAI Follow-up System Prompt', { systemPrompt });[m
+[32m+[m[32m  logger.info('OpenAI Follow-up User Prompt', { userPrompt });[m
+ [m
+   try {[m
+     const openAIClient = getOpenAIClient();[m
+[36m@@ -308,7 +308,7 @@[m [mGuidelines:[m
+     const response = completion.choices?.[0]?.message?.content?.trim() ?? "I'm having trouble connecting to the cards' wisdom right now. Please try again.";[m
+     [m
+     // Log the response[m
+[31m-    logger.debug('OpenAI Follow-up Question Response', {[m
+[32m+[m[32m    logger.info('OpenAI Follow-up Question Response', {[m
+       responseLength: response.length,[m
+       response: response.substring(0, 200) + (response.length > 200 ? '...' : '')[m
+     });[m

@@ -21,7 +21,7 @@ export async function askGpt(userText) {
   const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
   // Log the prompts for debugging
-  logger.debug('OpenAI General Request', {
+  logger.info('OpenAI General Request', {
     userText: userText.substring(0, 100) + (userText.length > 100 ? '...' : ''),
     systemPrompt
   });
@@ -43,7 +43,7 @@ export async function askGpt(userText) {
   const response = completion.choices?.[0]?.message?.content?.trim() ?? "(no response)";
   
   // Log the response
-  logger.debug('OpenAI General Response', {
+  logger.info('OpenAI General Response', {
     responseLength: response.length,
     response: response.substring(0, 200) + (response.length > 200 ? '...' : '')
   });
@@ -109,7 +109,7 @@ Format: Brief introduction, key insights, practical guidance.`;
   userPrompt += `Provide a concise interpretation (max 1000 characters) that connects these cards meaningfully for this ${context} reading. Focus on the most important insights and practical guidance.`;
 
   // Log the prompts for debugging
-  logger.debug('OpenAI Tarot Interpretation Request', {
+  logger.info('OpenAI Tarot Interpretation Request', {
     context,
     spreadName,
     language,
@@ -118,8 +118,8 @@ Format: Brief introduction, key insights, practical guidance.`;
     hasUserProfile: !!userProfile
   });
   
-  logger.debug('OpenAI System Prompt', { systemPrompt });
-  logger.debug('OpenAI User Prompt', { userPrompt });
+  logger.info('OpenAI System Prompt', { systemPrompt });
+  logger.info('OpenAI User Prompt', { userPrompt });
 
   try {
     const openAIClient = getOpenAIClient();
@@ -140,7 +140,7 @@ Format: Brief introduction, key insights, practical guidance.`;
     const response = completion.choices?.[0]?.message?.content?.trim() ?? "Unable to generate interpretation at this time.";
     
     // Log the response
-    logger.debug('OpenAI Tarot Interpretation Response', {
+    logger.info('OpenAI Tarot Interpretation Response', {
       responseLength: response.length,
       response: response.substring(0, 200) + (response.length > 200 ? '...' : '')
     });
@@ -202,7 +202,7 @@ Format: "💡 Advice: [2-3 numbered points]"`;
   userPrompt += `Provide 2-3 specific, actionable tips (max 800 characters) to help this person move forward positively.`;
 
   // Log the prompts for debugging
-  logger.debug('OpenAI Personalized Advice Request', {
+  logger.info('OpenAI Personalized Advice Request', {
     context,
     language,
     cardCount: interpretations.length,
@@ -210,8 +210,8 @@ Format: "💡 Advice: [2-3 numbered points]"`;
     hasUserProfile: !!userProfile
   });
   
-  logger.debug('OpenAI Advice System Prompt', { systemPrompt });
-  logger.debug('OpenAI Advice User Prompt', { userPrompt });
+  logger.info('OpenAI Advice System Prompt', { systemPrompt });
+  logger.info('OpenAI Advice User Prompt', { userPrompt });
 
   try {
     const openAIClient = getOpenAIClient();
@@ -232,7 +232,7 @@ Format: "💡 Advice: [2-3 numbered points]"`;
     const response = completion.choices?.[0]?.message?.content?.trim() ?? "Unable to generate advice at this time.";
     
     // Log the response
-    logger.debug('OpenAI Personalized Advice Response', {
+    logger.info('OpenAI Personalized Advice Response', {
       responseLength: response.length,
       response: response.substring(0, 200) + (response.length > 200 ? '...' : '')
     });
@@ -279,15 +279,15 @@ Guidelines:
   userPrompt += `Provide a concise answer (max 1000 characters) that addresses their question using the wisdom of their original reading.`;
 
   // Log the prompts for debugging
-  logger.debug('OpenAI Follow-up Question Request', {
+  logger.info('OpenAI Follow-up Question Request', {
     context,
     language,
     cardCount: interpretations.length,
     followUpQuestion
   });
   
-  logger.debug('OpenAI Follow-up System Prompt', { systemPrompt });
-  logger.debug('OpenAI Follow-up User Prompt', { userPrompt });
+  logger.info('OpenAI Follow-up System Prompt', { systemPrompt });
+  logger.info('OpenAI Follow-up User Prompt', { userPrompt });
 
   try {
     const openAIClient = getOpenAIClient();
@@ -308,7 +308,7 @@ Guidelines:
     const response = completion.choices?.[0]?.message?.content?.trim() ?? "I'm having trouble connecting to the cards' wisdom right now. Please try again.";
     
     // Log the response
-    logger.debug('OpenAI Follow-up Question Response', {
+    logger.info('OpenAI Follow-up Question Response', {
       responseLength: response.length,
       response: response.substring(0, 200) + (response.length > 200 ? '...' : '')
     });
