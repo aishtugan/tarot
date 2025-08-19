@@ -8,9 +8,15 @@ A sophisticated Telegram bot that provides personalized tarot readings using AI-
 - **Daily Reading** (`/daily`) - Daily guidance and insights
 - **Love Reading** (`/love`) - Relationship and emotional guidance
 - **Career Reading** (`/career`) - Professional and work-related advice
-- **Quick Reading** (`/quick`) - Single card reading for immediate guidance
+- **Quick Reading** (`/quick`) - 3-card reading for immediate guidance
 - **General Reading** - Ask any question for personalized guidance
 - **Full Deck Reading** - Comprehensive readings with multiple options
+
+### 🔄 **Card Reversals**
+- **Toggle Reversals** (`/reversals`) - Enable/disable reversed card interpretations
+- **Smart Reversal Logic** - 30% chance of reversal when enabled
+- **Enhanced Meanings** - Different interpretations for upright vs reversed cards
+- **User Preferences** - Individual reversal settings saved per user
 
 ### 🤖 **AI-Powered Interpretations**
 - Personalized readings based on your question and context
@@ -96,7 +102,8 @@ A sophisticated Telegram bot that provides personalized tarot readings using AI-
 | `/daily` | Get your daily tarot reading |
 | `/love` | Love and relationship guidance |
 | `/career` | Career and professional advice |
-| `/quick` | Quick single card reading |
+| `/quick` | Quick 3-card reading |
+| `/reversals` | Toggle card reversals on/off |
 | `/language` | Change bot language |
 | `/stats` | View your reading statistics |
 | `/profile` | Complete personal profile survey |
@@ -120,7 +127,7 @@ A sophisticated Telegram bot that provides personalized tarot readings using AI-
 - Workplace relationships and challenges
 
 ### **Quick Reading**
-- Single card for immediate guidance
+- 3-card spread for immediate guidance
 - Perfect for quick questions or daily insights
 - Fast and focused interpretations
 
@@ -133,6 +140,22 @@ A sophisticated Telegram bot that provides personalized tarot readings using AI-
 - **Full Deck** - Complete 78-card reading
 - **Major Arcana Only** - 22 major arcana cards
 - **Suit-Focused** - Choose specific suit (Wands, Cups, Swords, Pentacles)
+
+## 🔄 Card Reversals
+
+The bot supports card reversals for enhanced readings:
+
+### **How It Works**
+- **Toggle Command**: Use `/reversals` to enable/disable
+- **Reversal Logic**: 30% chance of reversal when enabled
+- **Enhanced Meanings**: Different interpretations for upright vs reversed
+- **User Preferences**: Settings saved individually per user
+
+### **Benefits**
+- **Deeper Insights** - Reversed cards add nuance and complexity
+- **More Accurate Readings** - Reflects real tarot practice
+- **Personal Choice** - Users can choose their preference
+- **Educational Value** - Learn about reversed card meanings
 
 ## 🌟 Personal Profile Survey
 
@@ -181,6 +204,7 @@ The bot uses SQLite for data storage:
 - Reading history and statistics
 - Survey responses
 - Language preferences
+- Reversal preferences
 
 ## 🛠️ Development
 
@@ -203,6 +227,7 @@ src/
 │   └── index.js          # Survey management
 ├── visual/               # Visual enhancements
 │   ├── index.js          # Visual functions
+│   ├── cardImages.js     # Card image handling
 │   └── messageHandler.js # Message formatting
 └── utils/                # Utilities
     └── messageSplitter.js # Message handling
@@ -250,10 +275,11 @@ docker run -d --name tarot-bot tarot-bot
 ## 📈 Recent Updates
 
 ### **Latest Fixes (Current)**
-- ✅ **Fixed Translation Issues** - Card meanings now display properly instead of translation keys
-- ✅ **Enhanced Visual Display** - Real tarot card images with proper formatting
-- ✅ **Improved Error Handling** - Better fallback for missing translations
-- ✅ **PowerShell Compatibility** - Fixed command execution issues
+- ✅ **Fixed Card Reversals** - Resolved property name mismatch (card.isReversed vs card.reversed)
+- ✅ **Enhanced Reversal Logic** - Proper 30% reversal chance and user preference persistence
+- ✅ **Improved User Experience** - Toggle command works correctly in both directions
+- ✅ **Database Optimization** - Fixed user registration to preserve reversal preferences
+- ✅ **Visual Display Fixes** - Reversed cards now display correctly with 🔄 indicator
 
 ### **Previous Updates**
 - ✅ **Multi-language Support** - Complete Russian and Spanish translations
@@ -261,6 +287,7 @@ docker run -d --name tarot-bot tarot-bot
 - ✅ **Visual Enhancements** - Real tarot card images and improved formatting
 - ✅ **Full Deck Readings** - Comprehensive reading options
 - ✅ **User Statistics** - Reading history and progress tracking
+- ✅ **Translation System** - Card meanings and descriptions in all languages
 
 ## 🤝 Contributing
 
