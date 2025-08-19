@@ -22,7 +22,7 @@ export async function sendCardImage(bot, chatId, card, language = 'en') {
       const caption = formatCardCaption(card, language);
       
       // If card is reversed, add a note about the image being upright
-      const finalCaption = card.reversed 
+      const finalCaption = card.isReversed 
         ? caption + '\n\n🔄 <i>' + getTranslation('card_reversed_note', language) + '</i>'
         : caption;
       
@@ -72,7 +72,7 @@ export async function sendCardGallery(bot, chatId, cards, language = 'en') {
         const caption = formatCardCaption(card, language);
         
         // If card is reversed, add a note about the image being upright
-        const finalCaption = card.reversed 
+        const finalCaption = card.isReversed 
           ? caption + '\n\n🔄 <i>' + getTranslation('card_reversed_note', language) + '</i>'
           : caption;
         
@@ -221,14 +221,14 @@ export async function sendSurveyQuestion(bot, chatId, question, language = 'en')
 function formatCardCaption(card, language = 'en') {
   // Use the proper card translation function
   const cardName = getTranslatedCardName(card, language);
-  const position = card.reversed ? getTranslation('card_reversed', language) : getTranslation('card_upright', language);
+  const position = card.isReversed ? getTranslation('card_reversed', language) : getTranslation('card_upright', language);
   
   // Enhanced formatting for better visual appeal
   let caption = `🃏 <b>${cardName}</b>\n`;
   caption += `📊 <i>${position}</i>\n`;
   
   if (card.meaning) {
-    const meaningKey = `card_meaning_${card.name.toLowerCase().replace(/\s+/g, '_')}_${card.reversed ? 'reversed' : 'upright'}_general`;
+    const meaningKey = `card_meaning_${card.name.toLowerCase().replace(/\s+/g, '_')}_${card.isReversed ? 'reversed' : 'upright'}_general`;
     const translatedMeaning = getTranslation(meaningKey, language);
     const finalMeaning = translatedMeaning && translatedMeaning !== meaningKey ? translatedMeaning : card.meaning;
     caption += `\n💭 <b>${getTranslation('card_meaning', language)}:</b>\n`;

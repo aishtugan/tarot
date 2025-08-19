@@ -107,8 +107,8 @@ const TRANSLATIONS = {
   en: {
     // Welcome and help
     welcome: "🔮 Welcome to the Mystical Tarot Bot!\n\nI'm your personal tarot reader, ready to guide you through life's mysteries.\n\nUse /help to see all available commands.",
-         help: "🔮 <b>Tarot Bot Commands</b>\n\n📖 <b>Reading Types:</b>\n• /daily - Daily card reading\n• /love - Love & relationship reading\n• /career - Career & work reading\n• /quick - Quick 3-card reading\n• /fulldeck - Advanced full deck options\n\n📊 <b>Other Commands:</b>\n• /profile - Complete personal survey for better readings\n• /stats - View your reading statistics\n• /language - Change language\n• /help - Show this help\n\n💬 <b>Or simply ask me a question!</b>",
-    tarot_bot_commands: "🔮 <b>Available Commands:</b>\n\n📖 <b>Reading Types:</b>\n• /daily - Daily card reading\n• /love - Love & relationship reading\n• /career - Career & work reading\n• /quick - Quick 3-card reading\n• /fulldeck - Advanced full deck options\n\n📊 <b>Other Commands:</b>\n• /profile - Complete personal survey for better readings\n• /stats - View your reading statistics\n• /language - Change language\n• /help - Show detailed help\n\n💬 <b>Or simply ask me a question!</b>",
+         help: "🔮 <b>Tarot Bot Commands</b>\n\n📖 <b>Reading Types:</b>\n• /daily - Daily card reading\n• /love - Love & relationship reading\n• /career - Career & work reading\n• /quick - Quick 3-card reading\n• /fulldeck - Advanced full deck options\n\n📊 <b>Other Commands:</b>\n• /profile - Complete personal survey for better readings\n• /reversals - Toggle card reversals on/off\n• /stats - View your reading statistics\n• /language - Change language\n• /help - Show this help\n\n💬 <b>Or simply ask me a question!</b>",
+    tarot_bot_commands: "🔮 <b>Available Commands:</b>\n\n📖 <b>Reading Types:</b>\n• /daily - Daily card reading\n• /love - Love & relationship reading\n• /career - Career & work reading\n• /quick - Quick 3-card reading\n• /fulldeck - Advanced full deck options\n\n📊 <b>Other Commands:</b>\n• /profile - Complete personal survey for better readings\n• /reversals - Toggle card reversals on/off\n• /stats - View your reading statistics\n• /language - Change language\n• /help - Show detailed help\n\n💬 <b>Or simply ask me a question!</b>",
     
     // Language selection
     language_select: "🌍 <b>Select Your Language</b>\n\nChoose your preferred language for the bot interface:",
@@ -309,14 +309,18 @@ const TRANSLATIONS = {
      survey_previous: "Previous",
      survey_finish: "Finish Survey",
      survey_cancel_survey: "Cancel Survey",
-     survey_progress: "Question {current} of {total}"
+     survey_progress: "Question {current} of {total}",
+     
+     // Reversal-related translations
+     reversals_enabled: "🔄 <b>Card Reversals Enabled</b>\n\nYour tarot readings will now include reversed cards, which can provide additional depth and nuance to the interpretations.",
+     reversals_disabled: "🔄 <b>Card Reversals Disabled</b>\n\nYour tarot readings will now show all cards in their upright position for simpler interpretations."
    },
   
   ru: {
     // Welcome and help
     welcome: "🔮 Добро пожаловать в Мистический Таро Бот!\n\nЯ ваш личный таролог, готовый провести вас через тайны жизни.\n\nИспользуйте /help для просмотра всех доступных команд.",
-         help: "🔮 <b>Команды Таро Бота</b>\n\n📖 <b>Типы гаданий:</b>\n• /daily - Карта дня\n• /love - Гадание на любовь и отношения\n• /career - Гадание на карьеру и работу\n• /quick - Быстрое гадание на 3 карты\n• /fulldeck - Расширенные опции полной колоды\n\n📊 <b>Другие команды:</b>\n• /profile - Пройти персональный опрос для лучших гаданий\n• /stats - Просмотр статистики гаданий\n• /language - Смена языка\n• /help - Показать эту справку\n\n💬 <b>Или просто задайте мне вопрос!</b>",
-    tarot_bot_commands: "🔮 <b>Доступные команды:</b>\n\n📖 <b>Типы гаданий:</b>\n• /daily - Карта дня\n• /love - Гадание на любовь и отношения\n• /career - Гадание на карьеру и работу\n• /quick - Быстрое гадание на 3 карты\n• /fulldeck - Расширенные опции полной колоды\n\n📊 <b>Другие команды:</b>\n• /profile - Пройти персональный опрос для лучших гаданий\n• /stats - Просмотр статистики гаданий\n• /language - Смена языка\n• /help - Показать подробную справку\n\n💬 <b>Или просто задайте мне вопрос!</b>",
+         help: "🔮 <b>Команды Таро Бота</b>\n\n📖 <b>Типы гаданий:</b>\n• /daily - Карта дня\n• /love - Гадание на любовь и отношения\n• /career - Гадание на карьеру и работу\n• /quick - Быстрое гадание на 3 карты\n• /fulldeck - Расширенные опции полной колоды\n\n📊 <b>Другие команды:</b>\n• /profile - Пройти персональный опрос для лучших гаданий\n• /reversals - Включить/выключить перевернутые карты\n• /stats - Просмотр статистики гаданий\n• /language - Смена языка\n• /help - Показать эту справку\n\n💬 <b>Или просто задайте мне вопрос!</b>",
+    tarot_bot_commands: "🔮 <b>Доступные команды:</b>\n\n📖 <b>Типы гаданий:</b>\n• /daily - Карта дня\n• /love - Гадание на любовь и отношения\n• /career - Гадание на карьеру и работу\n• /quick - Быстрое гадание на 3 карты\n• /fulldeck - Расширенные опции полной колоды\n\n📊 <b>Другие команды:</b>\n• /profile - Пройти персональный опрос для лучших гаданий\n• /reversals - Включить/выключить перевернутые карты\n• /stats - Просмотр статистики гаданий\n• /language - Смена языка\n• /help - Показать подробную справку\n\n💬 <b>Или просто задайте мне вопрос!</b>",
     
     // Language selection
     language_select: "🌍 <b>Выберите язык</b>\n\nВыберите предпочитаемый язык для интерфейса бота:",
@@ -517,14 +521,18 @@ const TRANSLATIONS = {
      survey_previous: "Назад",
      survey_finish: "Завершить опрос",
      survey_cancel_survey: "Отменить опрос",
-     survey_progress: "Вопрос {current} из {total}"
+     survey_progress: "Вопрос {current} из {total}",
+     
+     // Reversal-related translations
+     reversals_enabled: "🔄 <b>Перевернутые карты включены</b>\n\nВаши гадания на таро теперь будут включать перевернутые карты, которые могут предоставить дополнительную глубину и нюансы в интерпретациях.",
+     reversals_disabled: "🔄 <b>Перевернутые карты отключены</b>\n\nВаши гадания на таро теперь будут показывать все карты в прямом положении для более простых интерпретаций."
    },
   
   es: {
     // Welcome and help
     welcome: "🔮 ¡Bienvenido al Bot Místico de Tarot!\n\nSoy tu lector de tarot personal, listo para guiarte a través de los misterios de la vida.\n\nUsa /help para ver todos los comandos disponibles.",
-         help: "🔮 <b>Comandos del Bot de Tarot</b>\n\n📖 <b>Tipos de Lecturas:</b>\n• /daily - Lectura de carta diaria\n• /love - Lectura de amor y relaciones\n• /career - Lectura de carrera y trabajo\n• /quick - Lectura rápida de 3 cartas\n• /fulldeck - Opciones avanzadas de mazo completo\n\n📊 <b>Otros Comandos:</b>\n• /profile - Completar encuesta personal para mejores lecturas\n• /stats - Ver estadísticas de lecturas\n• /language - Cambiar idioma\n• /help - Mostrar esta ayuda\n\n💬 <b>¡O simplemente hazme una pregunta!</b>",
-    tarot_bot_commands: "🔮 <b>Comandos Disponibles:</b>\n\n📖 <b>Tipos de Lecturas:</b>\n• /daily - Lectura de carta diaria\n• /love - Lectura de amor y relaciones\n• /career - Lectura de carrera y trabajo\n• /quick - Lectura rápida de 3 cartas\n• /fulldeck - Opciones avanzadas de mazo completo\n\n📊 <b>Otros Comandos:</b>\n• /profile - Completar encuesta personal para mejores lecturas\n• /stats - Ver estadísticas de lecturas\n• /language - Cambiar idioma\n• /help - Mostrar ayuda detallada\n\n💬 <b>¡O simplemente hazme una pregunta!</b>",
+         help: "🔮 <b>Comandos del Bot de Tarot</b>\n\n📖 <b>Tipos de Lecturas:</b>\n• /daily - Lectura de carta diaria\n• /love - Lectura de amor y relaciones\n• /career - Lectura de carrera y trabajo\n• /quick - Lectura rápida de 3 cartas\n• /fulldeck - Opciones avanzadas de mazo completo\n\n📊 <b>Otros Comandos:</b>\n• /profile - Completar encuesta personal para mejores lecturas\n• /reversals - Activar/desactivar cartas invertidas\n• /stats - Ver estadísticas de lecturas\n• /language - Cambiar idioma\n• /help - Mostrar esta ayuda\n\n💬 <b>¡O simplemente hazme una pregunta!</b>",
+    tarot_bot_commands: "🔮 <b>Comandos Disponibles:</b>\n\n📖 <b>Tipos de Lecturas:</b>\n• /daily - Lectura de carta diaria\n• /love - Lectura de amor y relaciones\n• /career - Lectura de carrera y trabajo\n• /quick - Lectura rápida de 3 cartas\n• /fulldeck - Opciones avanzadas de mazo completo\n\n📊 <b>Otros Comandos:</b>\n• /profile - Completar encuesta personal para mejores lecturas\n• /reversals - Activar/desactivar cartas invertidas\n• /stats - Ver estadísticas de lecturas\n• /language - Cambiar idioma\n• /help - Mostrar ayuda detallada\n\n💬 <b>¡O simplemente hazme una pregunta!</b>",
     
     // Language selection
     language_select: "🌍 <b>Selecciona tu idioma</b>\n\nElige tu idioma preferido para la interfaz del bot:",
@@ -725,7 +733,11 @@ const TRANSLATIONS = {
      survey_previous: "Anterior",
      survey_finish: "Finalizar Encuesta",
      survey_cancel_survey: "Cancelar Encuesta",
-     survey_progress: "Pregunta {current} de {total}"
+     survey_progress: "Pregunta {current} de {total}",
+     
+     // Reversal-related translations
+     reversals_enabled: "🔄 <b>Cartas Invertidas Habilitadas</b>\n\nTus lecturas de tarot ahora incluirán cartas invertidas, que pueden proporcionar profundidad adicional y matices a las interpretaciones.",
+     reversals_disabled: "🔄 <b>Cartas Invertidas Deshabilitadas</b>\n\nTus lecturas de tarot ahora mostrarán todas las cartas en posición derecha para interpretaciones más simples."
    }
  };
 

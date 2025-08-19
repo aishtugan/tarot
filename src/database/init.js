@@ -42,13 +42,14 @@ function createTables() {
         gender TEXT,
         age_group TEXT,
         emotional_state TEXT,
-        life_focus TEXT,
-        spiritual_beliefs TEXT,
         relationship_status TEXT,
-        career_stage TEXT,
+        career_field TEXT,
+        life_goals TEXT,
+        readings_count INTEGER DEFAULT 0,
+        last_reading_at DATETIME,
+        include_reversals BOOLEAN DEFAULT TRUE,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        last_activity DATETIME DEFAULT CURRENT_TIMESTAMP,
-        total_readings INTEGER DEFAULT 0
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -58,10 +59,13 @@ function createTables() {
       'gender', 
       'age_group',
       'emotional_state',
-      'life_focus',
-      'spiritual_beliefs',
       'relationship_status',
-      'career_stage'
+      'career_field',
+      'life_goals',
+      'readings_count',
+      'last_reading_at',
+      'include_reversals',
+      'updated_at'
     ];
     
     columns.forEach(column => {
@@ -76,16 +80,13 @@ function createTables() {
     db.exec(`
       CREATE TABLE IF NOT EXISTS readings (
         id INTEGER PRIMARY KEY,
-        user_id INTEGER NOT NULL,
-        reading_type TEXT NOT NULL,
-        spread_name TEXT,
-        cards TEXT NOT NULL,
+        telegram_id INTEGER NOT NULL,
+        question TEXT,
+        cards_drawn TEXT NOT NULL,
         interpretation TEXT,
-        user_question TEXT,
         ai_enhanced BOOLEAN DEFAULT FALSE,
         personalized BOOLEAN DEFAULT FALSE,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id)
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
 

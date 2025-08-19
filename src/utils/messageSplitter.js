@@ -102,3 +102,5 @@ export function isMessageTooLong(message, maxLength = TELEGRAM_MAX_LENGTH) {
   return message.length > maxLength;
 }
 
+
+

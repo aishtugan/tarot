@@ -35,12 +35,12 @@ export class TarotReader {
       const spread = this.determineSpread(readingType, spreadName);
       console.log(`📏 Using spread: ${spread.name} (${spread.cardCount} cards)`);
       
-      // Step 2: Select cards for the reading
+      // Step 2: Select cards for the reading (includes reversal handling)
       const cards = this.selectCards(spread.cardCount, readingType, includeReversals);
       console.log(`🎴 Selected ${cards.length} cards`);
       
-      // Step 3: Determine which cards are reversed
-      const reversedCards = includeReversals ? this.determineReversedCards(cards.length) : [];
+      // Step 3: Extract reversed card indices for interpretation
+      const reversedCards = cards.map((card, index) => card.isReversed ? index : -1).filter(index => index !== -1);
       
       // Step 4: Interpret the cards
       const interpretations = interpretSpread(cards, spread.name, readingType, reversedCards);
@@ -99,9 +99,11 @@ export class TarotReader {
    * @param {string} readingType - Type of reading
    * @param {string} userQuestion - User's question
    * @param {string} language - Language for the reading
+   * @param {boolean} includeReversals - Whether to include reversed cards
+   * @param {number} telegramId - Telegram user ID for preferences
    * @returns {Object} Quick reading result
    */
-  async performQuickReading(readingType = 'general', userQuestion = '', language = 'en') {
+  async performQuickReading(readingType = 'general', userQuestion = '', language = 'en', includeReversals = true, telegramId = null) {
     try {
       console.log(`⚡ Performing quick reading...`);
       
@@ -111,12 +113,21 @@ export class TarotReader {
       
       for (let i = 0; i < 3; i++) {
         const card = getRandomCard();
-        const isReversed = Math.random() < 0.3; // 30% chance of reversal
         
+        // Apply reversal based on includeReversals parameter
+        const isReversed = includeReversals && Math.random() < 0.3; // 30% chance of reversal if enabled
+        
+        card.isReversed = isReversed;
         cards.push(card);
         if (isReversed) {
           reversedCards.push(i);
         }
+      }
+      
+      if (includeReversals) {
+        console.log(`🔄 Applied reversals: ${reversedCards.length} out of ${cards.length} cards`);
+      } else {
+        console.log(`🔄 Reversals disabled: all cards are upright`);
       }
       
       // Create spread name for positions
@@ -160,42 +171,86 @@ export class TarotReader {
   /**
    * Perform a daily reading
    * @param {string} language - Language for AI responses
+   * @param {number} telegramId - Telegram user ID for preferences
    * @returns {Object} Daily reading result
    */
   async performDailyReading(language = 'en', telegramId = null) {
-    return this.performReading('daily', 'What guidance do I need for today?', 'single', true, language, telegramId);
+    // Get user's reversal preference if available
+    let includeReversals = true;
+    if (telegramId) {
+      try {
+        const { getUserReversalPreference } = await import('../database/users.js');
+        includeReversals = getUserReversalPreference(telegramId);
+      } catch (error) {
+        console.log('⚠️ Could not retrieve user reversal preference, using default (true)');
+      }
+    }
+    return this.performReading('daily', 'What guidance do I need for today?', 'single', includeReversals, language, telegramId);
   }
   
   /**
    * Perform a love reading
    * @param {string} userQuestion - Specific love question
    * @param {string} language - Language for AI responses
+   * @param {number} telegramId - Telegram user ID for preferences
    * @returns {Object} Love reading result
    */
   async performLoveReading(userQuestion = '', language = 'en', telegramId = null) {
+    // Get user's reversal preference if available
+    let includeReversals = true;
+    if (telegramId) {
+      try {
+        const { getUserReversalPreference } = await import('../database/users.js');
+        includeReversals = getUserReversalPreference(telegramId);
+      } catch (error) {
+        console.log('⚠️ Could not retrieve user reversal preference, using default (true)');
+      }
+    }
     const question = userQuestion || 'What guidance do I need for my love life?';
-    return this.performReading('love', question, 'love', true, language, telegramId);
+    return this.performReading('love', question, 'love', includeReversals, language, telegramId);
   }
   
   /**
    * Perform a career reading
    * @param {string} userQuestion - Specific career question
    * @param {string} language - Language for AI responses
+   * @param {number} telegramId - Telegram user ID for preferences
    * @returns {Object} Career reading result
    */
   async performCareerReading(userQuestion = '', language = 'en', telegramId = null) {
+    // Get user's reversal preference if available
+    let includeReversals = true;
+    if (telegramId) {
+      try {
+        const { getUserReversalPreference } = await import('../database/users.js');
+        includeReversals = getUserReversalPreference(telegramId);
+      } catch (error) {
+        console.log('⚠️ Could not retrieve user reversal preference, using default (true)');
+      }
+    }
     const question = userQuestion || 'What guidance do I need for my career?';
-    return this.performReading('career', question, 'career', true, language, telegramId);
+    return this.performReading('career', question, 'career', includeReversals, language, telegramId);
   }
   
   /**
    * Perform a general guidance reading
    * @param {string} userQuestion - User's question
    * @param {string} language - Language for AI responses
+   * @param {number} telegramId - Telegram user ID for preferences
    * @returns {Object} General reading result
    */
   async performGeneralReading(userQuestion = '', language = 'en', telegramId = null) {
-    return this.performReading('general', userQuestion, 'threeCard', true, language, telegramId);
+    // Get user's reversal preference if available
+    let includeReversals = true;
+    if (telegramId) {
+      try {
+        const { getUserReversalPreference } = await import('../database/users.js');
+        includeReversals = getUserReversalPreference(telegramId);
+      } catch (error) {
+        console.log('⚠️ Could not retrieve user reversal preference, using default (true)');
+      }
+    }
+    return this.performReading('general', userQuestion, 'threeCard', includeReversals, language, telegramId);
   }
 
   /**
@@ -230,8 +285,27 @@ export class TarotReader {
       const cards = getFullDeckCards(cardCount, { deckType, includeMinors });
       console.log(`🎴 Selected ${cards.length} cards from ${deckType} deck`);
       
-      // Determine reversed cards
-      const reversedCards = includeReversals ? this.determineReversedCards(cards.length) : [];
+      // Apply reversals to cards if enabled
+      if (includeReversals) {
+        const reversedIndices = this.determineReversedCards(cards.length);
+        cards.forEach((card, index) => {
+          if (reversedIndices.includes(index)) {
+            card.isReversed = true;
+          } else {
+            card.isReversed = false;
+          }
+        });
+        console.log(`🔄 Applied reversals: ${reversedIndices.length} out of ${cards.length} cards`);
+      } else {
+        // Ensure all cards are marked as upright when reversals are disabled
+        cards.forEach(card => {
+          card.isReversed = false;
+        });
+        console.log(`🔄 Reversals disabled: all cards are upright`);
+      }
+      
+      // Extract reversed card indices for interpretation
+      const reversedCards = cards.map((card, index) => card.isReversed ? index : -1).filter(index => index !== -1);
       
       // Create spread name for this reading
       const spreadName = `${deckType.charAt(0).toUpperCase() + deckType.slice(1)} ${cardCount}-Card Reading`;
@@ -342,6 +416,25 @@ export class TarotReader {
       const cards = getRandomCards(cardCount, cardType);
       
       console.log(`🎴 Selected cards: ${cards.map(card => card.name).join(', ')}`);
+      
+      // Apply reversals to cards if enabled
+      if (includeReversals) {
+        const reversedCards = this.determineReversedCards(cards.length);
+        cards.forEach((card, index) => {
+          if (reversedCards.includes(index)) {
+            card.isReversed = true;
+          } else {
+            card.isReversed = false;
+          }
+        });
+        console.log(`🔄 Applied reversals: ${reversedCards.length} out of ${cards.length} cards`);
+      } else {
+        // Ensure all cards are marked as upright when reversals are disabled
+        cards.forEach(card => {
+          card.isReversed = false;
+        });
+        console.log(`🔄 Reversals disabled: all cards are upright`);
+      }
       
       return cards;
       

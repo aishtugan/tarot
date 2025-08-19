@@ -1,314 +1,263 @@
-// User Management Module
-// Handles user registration, updates, and statistics
+import Database from 'better-sqlite3';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-import { getDatabase } from './init.js';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-/**
- * Register a new user
- * @param {number} id - Telegram user ID
- * @param {string} username - Telegram username
- * @param {string} first_name - User's first name
- * @param {string} last_name - User's last name
- * @returns {Object} User object
- */
-export function registerUser(id, username, first_name, last_name) {
-  const db = getDatabase();
-  
+const dbPath = path.join(__dirname, '../../data/tarot_bot.db');
+const db = new Database(dbPath);
+
+// User management functions
+export function registerUser(telegramId, username, firstName, lastName) {
   try {
-    const result = db.prepare(`
-      INSERT INTO users (telegram_id, username, first_name, last_name, language)
-      VALUES (?, ?, ?, ?, 'en')
-    `).run(id, username, first_name, last_name);
-
-    return {
-      id: result.lastInsertRowid,
-      telegram_id: id,
-      username,
-      first_name,
-      last_name,
-      language: 'en',
-      profile_completed: false,
-      total_readings: 0,
-      created_at: new Date().toISOString()
-    };
-  } catch (error) {
-    if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-      // User already exists, return existing user
-      return getUser(id);
+    // Check if user already exists
+    const existingUser = getUserById(telegramId);
+    
+    if (existingUser) {
+      // User exists, update only the basic info, preserve reversal preference
+      const stmt = db.prepare(`
+        UPDATE users 
+        SET username = ?, first_name = ?, last_name = ?, updated_at = datetime('now')
+        WHERE telegram_id = ?
+      `);
+      
+      const result = stmt.run(username, firstName, lastName, telegramId);
+      console.log(`✅ User updated: ${telegramId} (${username || firstName})`);
+      return result;
+    } else {
+      // New user, insert with default reversal preference
+      const stmt = db.prepare(`
+        INSERT INTO users 
+        (telegram_id, username, first_name, last_name, include_reversals, created_at, updated_at) 
+        VALUES (?, ?, ?, ?, 1, datetime('now'), datetime('now'))
+      `);
+      
+      const result = stmt.run(telegramId, username, firstName, lastName);
+      console.log(`✅ New user registered: ${telegramId} (${username || firstName})`);
+      return result;
     }
+  } catch (error) {
+    console.error('❌ Error registering user:', error);
     throw error;
   }
 }
 
-/**
- * Get user by Telegram ID
- * @param {number} telegramId - Telegram user ID
- * @returns {Object|null} User object or null
- */
-export function getUser(telegramId) {
-  const db = getDatabase();
-  
-  const user = db.prepare(`
-    SELECT * FROM users WHERE telegram_id = ?
-  `).get(telegramId);
-  
-  return user || null;
+export function getUserById(telegramId) {
+  try {
+    const stmt = db.prepare('SELECT * FROM users WHERE telegram_id = ?');
+    return stmt.get(telegramId);
+  } catch (error) {
+    console.error('❌ Error getting user:', error);
+    return null;
+  }
 }
 
-/**
- * Get user language
- * @param {number} telegramId - Telegram user ID
- * @returns {Object|null} User object with language or null
- */
+// Language management functions
 export function getUserLanguage(telegramId) {
-  const db = getDatabase();
-  
-  const user = db.prepare(`
-    SELECT language FROM users WHERE telegram_id = ?
-  `).get(telegramId);
-  
-  return user || null;
+  try {
+    const stmt = db.prepare('SELECT language FROM users WHERE telegram_id = ?');
+    const result = stmt.get(telegramId);
+    return result ? result.language : 'en';
+  } catch (error) {
+    console.error('❌ Error getting user language:', error);
+    return 'en';
+  }
 }
 
-/**
- * Set user language
- * @param {number} telegramId - Telegram user ID
- * @param {string} language - Language code
- */
 export function setUserLanguage(telegramId, language) {
-  const db = getDatabase();
-  
-  db.prepare(`
-    UPDATE users SET language = ?, last_activity = CURRENT_TIMESTAMP 
-    WHERE telegram_id = ?
-  `).run(language, telegramId);
-  
-  console.log(`🌍 Language updated to ${language} for user ${telegramId}`);
+  try {
+    const stmt = db.prepare(`
+      UPDATE users 
+      SET language = ?, updated_at = datetime('now') 
+      WHERE telegram_id = ?
+    `);
+    const result = stmt.run(language, telegramId);
+    console.log(`🌍 Language set to ${language} for user ${telegramId}`);
+    return result;
+  } catch (error) {
+    console.error('❌ Error setting user language:', error);
+    throw error;
+  }
 }
 
-/**
- * Update user profile information
- * @param {number} telegramId - Telegram user ID
- * @param {Object} profileData - Profile information
- */
+// Profile management functions
 export function updateUserProfile(telegramId, profileData) {
-  const db = getDatabase();
-  
-  const {
-    gender,
-    age_group,
-    emotional_state,
-    life_focus,
-    spiritual_beliefs,
-    relationship_status,
-    career_stage
-  } = profileData;
-  
-  db.prepare(`
-    UPDATE users SET 
-      gender = ?,
-      age_group = ?,
-      emotional_state = ?,
-      life_focus = ?,
-      spiritual_beliefs = ?,
-      relationship_status = ?,
-      career_stage = ?,
-      profile_completed = TRUE,
-      last_activity = CURRENT_TIMESTAMP
-    WHERE telegram_id = ?
-  `).run(
-    gender,
-    age_group,
-    emotional_state,
-    life_focus,
-    spiritual_beliefs,
-    relationship_status,
-    career_stage,
-    telegramId
-  );
-  
-  console.log(`👤 Profile updated for user ${telegramId}`);
+  try {
+    const stmt = db.prepare(`
+      UPDATE users 
+      SET profile_completed = 1,
+          gender = ?,
+          age_group = ?,
+          emotional_state = ?,
+          relationship_status = ?,
+          career_field = ?,
+          life_goals = ?,
+          updated_at = datetime('now')
+      WHERE telegram_id = ?
+    `);
+    
+    const result = stmt.run(
+      profileData.gender,
+      profileData.ageGroup,
+      profileData.emotionalState,
+      profileData.relationshipStatus,
+      profileData.careerField,
+      profileData.lifeGoals,
+      telegramId
+    );
+    
+    console.log(`✅ Profile updated for user ${telegramId}`);
+    return result;
+  } catch (error) {
+    console.error('❌ Error updating user profile:', error);
+    throw error;
+  }
 }
 
-/**
- * Get user profile information
- * @param {number} telegramId - Telegram user ID
- * @returns {Object|null} User profile or null
- */
 export function getUserProfile(telegramId) {
-  const db = getDatabase();
-  
-  const profile = db.prepare(`
-    SELECT 
-      profile_completed,
-      gender,
-      age_group,
-      emotional_state,
-      life_focus,
-      spiritual_beliefs,
-      relationship_status,
-      career_stage
-    FROM users WHERE telegram_id = ?
-  `).get(telegramId);
-  
-  return profile || null;
+  try {
+    const stmt = db.prepare(`
+      SELECT gender, age_group, emotional_state, relationship_status, 
+             career_field, life_goals, profile_completed
+      FROM users 
+      WHERE telegram_id = ?
+    `);
+    return stmt.get(telegramId);
+  } catch (error) {
+    console.error('❌ Error getting user profile:', error);
+    return null;
+  }
 }
 
-/**
- * Check if user profile is completed
- * @param {number} telegramId - Telegram user ID
- * @returns {boolean} True if profile is completed
- */
 export function isProfileCompleted(telegramId) {
-  const profile = getUserProfile(telegramId);
-  return profile ? profile.profile_completed : false;
+  try {
+    const stmt = db.prepare('SELECT profile_completed FROM users WHERE telegram_id = ?');
+    const result = stmt.get(telegramId);
+    return result ? Boolean(result.profile_completed) : false;
+  } catch (error) {
+    console.error('❌ Error checking profile completion:', error);
+    return false;
+  }
 }
 
-/**
- * Increment user's reading count
- * @param {number} telegramId - Telegram user ID
- */
+// Reversal preference functions
+export function getUserReversalPreference(telegramId) {
+  try {
+    const stmt = db.prepare('SELECT include_reversals FROM users WHERE telegram_id = ?');
+    const result = stmt.get(telegramId);
+    // If result is null or include_reversals is null, default to true
+    if (!result || result.include_reversals === null) {
+      return true;
+    }
+    // Convert to number first, then to boolean
+    return Boolean(Number(result.include_reversals));
+  } catch (error) {
+    console.error('❌ Error getting user reversal preference:', error);
+    return true; // Default to true
+  }
+}
+
+export function setUserReversalPreference(telegramId, includeReversals) {
+  try {
+    const stmt = db.prepare(`
+      UPDATE users 
+      SET include_reversals = ?, updated_at = datetime('now') 
+      WHERE telegram_id = ?
+    `);
+    const result = stmt.run(includeReversals ? 1 : 0, telegramId);
+    console.log(`🔄 Reversal preference set to ${includeReversals} for user ${telegramId}`);
+    return result;
+  } catch (error) {
+    console.error('❌ Error setting user reversal preference:', error);
+    throw error;
+  }
+}
+
+// Reading statistics functions
 export function incrementReadingCount(telegramId) {
-  const db = getDatabase();
-  
-  db.prepare(`
-    UPDATE users SET 
-      total_readings = total_readings + 1,
-      last_activity = CURRENT_TIMESTAMP
-    WHERE telegram_id = ?
-  `).run(telegramId);
+  try {
+    const stmt = db.prepare(`
+      UPDATE users 
+      SET readings_count = COALESCE(readings_count, 0) + 1,
+          updated_at = datetime('now')
+      WHERE telegram_id = ?
+    `);
+    return stmt.run(telegramId);
+  } catch (error) {
+    console.error('❌ Error incrementing reading count:', error);
+  }
 }
 
-/**
- * Get user statistics
- * @param {number} telegramId - Telegram user ID
- * @returns {Object} User statistics
- */
 export function getUserStats(telegramId) {
-  const db = getDatabase();
-  
-  // Get user info
-  const user = getUser(telegramId);
-  if (!user) {
-    throw new Error('User not found');
+  try {
+    const stmt = db.prepare(`
+      SELECT readings_count, created_at, last_reading_at
+      FROM users 
+      WHERE telegram_id = ?
+    `);
+    return stmt.get(telegramId);
+  } catch (error) {
+    console.error('❌ Error getting user stats:', error);
+    return null;
   }
-  
-  // Get reading statistics from readings table
-  const readingStats = db.prepare(`
-    SELECT 
-      COUNT(*) as total_readings,
-      SUM(CASE WHEN ai_enhanced = 1 THEN 1 ELSE 0 END) as ai_enhanced_readings,
-      SUM(CASE WHEN personalized = 1 THEN 1 ELSE 0 END) as personalized_readings,
-      COUNT(DISTINCT reading_type) as types_used
-    FROM readings r
-    JOIN users u ON r.user_id = u.id
-    WHERE u.telegram_id = ?
-  `).get(telegramId);
-  
-  // Get favorite reading types
-  const favoriteTypes = db.prepare(`
-    SELECT 
-      reading_type,
-      COUNT(*) as count
-    FROM readings r
-    JOIN users u ON r.user_id = u.id
-    WHERE u.telegram_id = ?
-    GROUP BY reading_type
-    ORDER BY count DESC
-    LIMIT 5
-  `).all(telegramId);
-  
-  return {
-    user: {
-      name: user.first_name || user.username || 'Unknown',
-      member_since: user.created_at,
-      profile_completed: user.profile_completed || false
-    },
-    stats: {
-      total_readings: readingStats.total_readings || user.total_readings || 0,
-      ai_enhanced_readings: readingStats.ai_enhanced_readings || 0,
-      personalized_readings: readingStats.personalized_readings || 0,
-      types_used: readingStats.types_used || 0
-    },
-    favorite_types: favoriteTypes
-  };
 }
 
-/**
- * Store a reading in the database
- * @param {number} telegramId - Telegram user ID
- * @param {Object} readingData - Reading data
- */
+// Reading storage functions
 export function storeReading(telegramId, readingData) {
-  const db = getDatabase();
-  
-  const user = getUser(telegramId);
-  if (!user) {
-    throw new Error('User not found');
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO readings 
+      (telegram_id, question, cards_drawn, interpretation, ai_enhanced, personalized, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+    `);
+    
+    const result = stmt.run(
+      telegramId,
+      readingData.question || '',
+      JSON.stringify(readingData.cards || []),
+      readingData.interpretation || '',
+      readingData.aiEnhanced ? 1 : 0,
+      readingData.personalized ? 1 : 0
+    );
+    
+    // Update last reading timestamp
+    const updateStmt = db.prepare(`
+      UPDATE users 
+      SET last_reading_at = datetime('now')
+      WHERE telegram_id = ?
+    `);
+    updateStmt.run(telegramId);
+    
+    console.log(`✅ Reading stored for user ${telegramId}`);
+    return result;
+  } catch (error) {
+    console.error('❌ Error storing reading:', error);
+    throw error;
   }
-  
-  const {
-    readingType,
-    spreadName,
-    cards,
-    interpretation,
-    userQuestion,
-    aiEnhanced = false,
-    personalized = false
-  } = readingData;
-  
-  db.prepare(`
-    INSERT INTO readings (
-      user_id, reading_type, spread_name, cards, interpretation, 
-      user_question, ai_enhanced, personalized
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    user.id,
-    readingType,
-    spreadName,
-    JSON.stringify(cards),
-    interpretation,
-    userQuestion,
-    aiEnhanced ? 1 : 0,
-    personalized ? 1 : 0
-  );
-  
-  console.log(`📊 Reading stored for user ${telegramId}`);
 }
 
-/**
- * Get all users (for admin purposes)
- * @returns {Array} Array of user objects
- */
-export function getAllUsers() {
-  const db = getDatabase();
-  
-  return db.prepare(`
-    SELECT 
-      telegram_id,
-      username,
-      first_name,
-      last_name,
-      language,
-      profile_completed,
-      total_readings,
-      created_at,
-      last_activity
-    FROM users
-    ORDER BY created_at DESC
-  `).all();
+export function getReadingHistory(telegramId, limit = 10) {
+  try {
+    const stmt = db.prepare(`
+      SELECT * FROM readings 
+      WHERE telegram_id = ? 
+      ORDER BY created_at DESC 
+      LIMIT ?
+    `);
+    return stmt.all(telegramId, limit);
+  } catch (error) {
+    console.error('❌ Error getting reading history:', error);
+    return [];
+  }
 }
 
-export default {
-  registerUser,
-  getUser,
-  getUserLanguage,
-  setUserLanguage,
-  updateUserProfile,
-  getUserProfile,
-  isProfileCompleted,
-  incrementReadingCount,
-  getUserStats,
-  storeReading,
-  getAllUsers
-};
+// Database utility functions
+export function closeDatabase() {
+  if (db) {
+    db.close();
+  }
+}
+
+// Export database instance for testing
+export { db };

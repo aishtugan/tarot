@@ -113,7 +113,7 @@ export function getCardSymbol(cardName) {
 export function createCardRepresentation(card, language = 'en') {
   const cardName = getTranslatedCardName(card, language);
   const symbol = getCardSymbol(card.name);
-  const position = card.reversed ? getTranslation('card_reversed', language) : getTranslation('card_upright', language);
+  const position = card.isReversed ? getTranslation('card_reversed', language) : getTranslation('card_upright', language);
   
   // Create a beautiful card frame using Unicode box drawing characters
   const cardFrame = [
@@ -164,7 +164,7 @@ export function createCardRepresentation(card, language = 'en') {
 export function createSimpleCardDisplay(card, language = 'en') {
   const cardName = getTranslatedCardName(card, language);
   const symbol = getCardSymbol(card.name);
-  const position = card.reversed ? getTranslation('card_reversed', language) : getTranslation('card_upright', language);
+  const position = card.isReversed ? getTranslation('card_reversed', language) : getTranslation('card_upright', language);
   
   return `${symbol} <b>${cardName}</b> (${position})`;
 }

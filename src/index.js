@@ -6,7 +6,7 @@ import TelegramBot from "node-telegram-bot-api";
 process.removeAllListeners('warning');
 import { tarotReader } from "./tarot/reader.js";
 import { initDatabase } from "./database/init.js";
-import { registerUser, incrementReadingCount, getUserStats, storeReading, getUserProfile } from "./database/users.js";
+import { registerUser, incrementReadingCount, getUserStats, storeReading, getUserProfile, getUserReversalPreference, setUserReversalPreference } from "./database/users.js";
 import { truncateMessage } from "./utils/messageSplitter.js";
 import { 
   detectLanguage, 
@@ -161,6 +161,8 @@ async function handleCommand(chatId, command, language = 'en') {
         break;
         
       case "/daily":
+        const dailyIncludeReversals = getUserReversalPreference(chatId);
+        console.log(`📊 Daily reading - User ${chatId} reversal preference: ${dailyIncludeReversals}`);
         const dailyReading = await tarotReader.performDailyReading(language, chatId);
         await sendEnhancedReading(bot, chatId, dailyReading, language, true);
         incrementReadingCount(chatId);
@@ -209,7 +211,9 @@ async function handleCommand(chatId, command, language = 'en') {
         break;
         
       case "/quick":
-        const quickReading = await tarotReader.performQuickReading('general', '', language);
+        const quickIncludeReversals = getUserReversalPreference(chatId);
+        console.log(`📊 Quick reading - User ${chatId} reversal preference: ${quickIncludeReversals}`);
+        const quickReading = await tarotReader.performQuickReading('general', '', language, quickIncludeReversals, chatId);
         
         await sendEnhancedReading(bot, chatId, quickReading, language, true);
         incrementReadingCount(chatId);
@@ -232,6 +236,11 @@ async function handleCommand(chatId, command, language = 'en') {
         
       case "/profile":
         await handleProfileCommand(chatId, language);
+        await sendCommandsMessage(chatId, language);
+        break;
+        
+      case "/reversals":
+        await handleReversalToggleCommand(chatId, language);
         await sendCommandsMessage(chatId, language);
         break;
         
@@ -566,6 +575,42 @@ async function handleProfileCommand(chatId, language = 'en') {
     }
   } catch (error) {
     console.error('Error handling profile command:', error);
+    await bot.sendMessage(chatId, getTranslation('error_generic', language));
+  }
+}
+
+/**
+ * Handle reversal toggle command
+ * @param {number} chatId - Chat ID
+ * @param {string} language - User language
+ */
+async function handleReversalToggleCommand(chatId, language = 'en') {
+  try {
+    console.log(`🔄 Reversal toggle requested for user ${chatId}`);
+    
+    const currentPreference = getUserReversalPreference(chatId);
+    console.log(`   Current preference: ${currentPreference}`);
+    
+    const newPreference = !currentPreference;
+    console.log(`   New preference: ${newPreference}`);
+    
+    setUserReversalPreference(chatId, newPreference);
+    console.log(`   Preference updated in database`);
+    
+    // Verify the change
+    const verifyPreference = getUserReversalPreference(chatId);
+    console.log(`   Verified preference: ${verifyPreference}`);
+    
+    const message = newPreference 
+      ? getTranslation('reversals_enabled', language) 
+      : getTranslation('reversals_disabled', language);
+    
+    console.log(`   Sending message: ${newPreference ? 'ENABLED' : 'DISABLED'}`);
+    await bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
+    
+    console.log(`✅ Reversal toggle completed successfully`);
+  } catch (error) {
+    console.error('Error handling reversal toggle command:', error);
     await bot.sendMessage(chatId, getTranslation('error_generic', language));
   }
 }
