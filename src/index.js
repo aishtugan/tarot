@@ -18,6 +18,8 @@ import {
 import { surveyManager, shouldCompleteSurvey, getSurveyIntroduction, getSurveyBenefits } from "./survey/index.js";
 import { sendEnhancedReading, sendWelcomeMessage, sendSurveyQuestion } from "./visual/messageHandler.js";
 import logger, { updateLoggerConfig } from "./utils/logger.js";
+import ConnectionHealthMonitor from "./utils/connectionHealth.js";
+import { validateTarotQuestion } from "./gpt.js";
 
 // Update logger configuration after environment variables are loaded
 updateLoggerConfig();
@@ -45,10 +47,56 @@ app.listen(PORT, () => {
 });
 
 // Telegram bot (long polling)
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
+const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { 
+  polling: true,
+  // Add connection resilience options
+  polling_options: {
+    timeout: 10,
+    limit: 100,
+    retryTimeout: 3000,
+    autoStart: true
+  }
+});
+
+// Add error handling for connection issues
+bot.on('polling_error', (error) => {
+  logger.errorWithStack('Telegram polling error', error);
+  
+  // Handle specific connection errors
+  if (error.code === 'EFATAL' || error.message.includes('ECONNRESET')) {
+    logger.warn('Connection reset detected, attempting to restart polling...');
+    
+    // Stop current polling
+    bot.stopPolling();
+    
+    // Wait a moment and restart
+    setTimeout(() => {
+      try {
+        bot.startPolling();
+        logger.info('Polling restarted successfully');
+      } catch (restartError) {
+        logger.errorWithStack('Failed to restart polling', restartError);
+      }
+    }, 5000); // Wait 5 seconds before restart
+  }
+});
+
+bot.on('error', (error) => {
+  logger.errorWithStack('Telegram bot error', error);
+});
+
+bot.on('webhook_error', (error) => {
+  logger.errorWithStack('Telegram webhook error', error);
+});
+
+// Initialize connection health monitor
+const connectionMonitor = new ConnectionHealthMonitor(bot);
 
 // Log bot startup
 logger.startup('1.0.0', process.env.NODE_ENV || 'development');
+
+// Start connection monitoring
+connectionMonitor.start();
 
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
@@ -100,7 +148,23 @@ bot.on("message", async (msg) => {
       return; // Response already handled
     }
     
-
+    // Validate if the user input is a tarot-related question
+    try {
+      const validation = await validateTarotQuestion(text, userLanguage);
+      
+      if (!validation.isValid) {
+        // Send polite response asking for a tarot question
+        await bot.sendMessage(chatId, validation.response, { parse_mode: 'HTML' });
+        logger.userAction(chatId, 'question_validation_failed', { 
+          input: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+          language: userLanguage 
+        });
+        return; // Don't proceed with reading
+      }
+    } catch (error) {
+      logger.errorWithStack('Error validating question', error);
+      // Continue with reading if validation fails
+    }
     
     // Log general reading start
     logger.userAction(chatId, 'general_reading_started', { 
@@ -385,6 +449,19 @@ async function handleCommand(chatId, command, language = 'en') {
           logger.botCommand(chatId, '/stats', false);
         }
         await sendCommandsMessage(chatId, language);
+        break;
+        
+      case "/status":
+        try {
+          logger.botCommand(chatId, '/status', true);
+          const connectionStatus = connectionMonitor.getStatus();
+          const statusMessage = formatConnectionStatus(connectionStatus, language);
+          await bot.sendMessage(chatId, statusMessage, { parse_mode: 'HTML' });
+        } catch (error) {
+          logger.errorWithStack('Error in status command', error);
+          logger.botCommand(chatId, '/status', false);
+          await bot.sendMessage(chatId, getTranslation('error_generic', language));
+        }
         break;
         
       default:
@@ -856,8 +933,110 @@ function formatUserProfile(profile, language = 'en') {
   return text;
 }
 
+/**
+ * Format connection status for display
+ * @param {Object} status - Connection status object
+ * @param {string} language - User language
+ * @returns {string} Formatted status text
+ */
+function formatConnectionStatus(status, language = 'en') {
+  const isConnected = status.isConnected;
+  const lastPing = status.lastPing;
+  const reconnectAttempts = status.reconnectAttempts;
+  const maxAttempts = status.maxReconnectAttempts;
+  
+  let text = "🔌 **Bot Connection Status**\n\n";
+  
+  // Connection status
+  text += `Status: ${isConnected ? '🟢 Connected' : '🔴 Disconnected'}\n`;
+  
+  // Last ping time
+  if (lastPing) {
+    const pingTime = new Date(lastPing).toLocaleString();
+    text += `Last Ping: ${pingTime}\n`;
+  } else {
+    text += `Last Ping: Never\n`;
+  }
+  
+  // Reconnection attempts
+  text += `Reconnection Attempts: ${reconnectAttempts}/${maxAttempts}\n`;
+  
+  // Health indicator
+  if (isConnected && reconnectAttempts === 0) {
+    text += `\n✅ **Healthy** - Bot is running normally`;
+  } else if (isConnected && reconnectAttempts > 0) {
+    text += `\n⚠️ **Recovered** - Bot reconnected after issues`;
+  } else if (!isConnected && reconnectAttempts < maxAttempts) {
+    text += `\n🔄 **Reconnecting** - Attempting to restore connection`;
+  } else {
+    text += `\n❌ **Critical** - Manual intervention may be required`;
+  }
+  
+  return text;
+}
+
 // Graceful shutdown
 process.on("SIGINT", () => {
-  console.log("Shutting down…");
+  logger.info("Received SIGINT, shutting down gracefully...");
+  
+  // Stop connection monitoring
+  try {
+    connectionMonitor.stop();
+    logger.info("Connection monitor stopped");
+  } catch (error) {
+    logger.errorWithStack("Error stopping connection monitor", error);
+  }
+  
+  // Stop bot polling
+  try {
+    bot.stopPolling();
+    logger.info("Bot polling stopped");
+  } catch (error) {
+    logger.errorWithStack("Error stopping bot polling", error);
+  }
+  
+  // Close database connections
+  try {
+    // Add any database cleanup here if needed
+    logger.info("Database connections closed");
+  } catch (error) {
+    logger.errorWithStack("Error closing database connections", error);
+  }
+  
+  logger.info("Shutdown complete");
   process.exit(0);
+});
+
+process.on("SIGTERM", () => {
+  logger.info("Received SIGTERM, shutting down gracefully...");
+  
+  // Stop connection monitoring
+  try {
+    connectionMonitor.stop();
+    logger.info("Connection monitor stopped");
+  } catch (error) {
+    logger.errorWithStack("Error stopping connection monitor", error);
+  }
+  
+  // Stop bot polling
+  try {
+    bot.stopPolling();
+    logger.info("Bot polling stopped");
+  } catch (error) {
+    logger.errorWithStack("Error stopping bot polling", error);
+  }
+  
+  logger.info("Shutdown complete");
+  process.exit(0);
+});
+
+// Handle uncaught exceptions
+process.on("uncaughtException", (error) => {
+  logger.errorWithStack("Uncaught exception", error);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  logger.errorWithStack("Unhandled rejection", new Error(`Promise: ${promise}, Reason: ${reason}`));
+  process.exit(1);
 });

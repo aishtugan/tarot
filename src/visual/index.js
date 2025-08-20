@@ -13,34 +13,6 @@ const MAJOR_ARCANA_CARDS = [
   'The Devil', 'The Tower', 'The Star', 'The Moon', 'The Sun', 'Judgement', 'The World'
 ];
 
-// Card image URLs - Only Major Arcana for better compatibility
-// Using placeholder URLs that indicate the card type
-const CARD_IMAGES = {
-  // Major Arcana - Using placeholder images for now
-  'The Fool': 'https://via.placeholder.com/300x500/FFD700/000000?text=The+Fool',
-  'The Magician': 'https://via.placeholder.com/300x500/4169E1/FFFFFF?text=The+Magician',
-  'The High Priestess': 'https://via.placeholder.com/300x500/9370DB/FFFFFF?text=High+Priestess',
-  'The Empress': 'https://via.placeholder.com/300x500/32CD32/FFFFFF?text=The+Empress',
-  'The Emperor': 'https://via.placeholder.com/300x500/FF4500/FFFFFF?text=The+Emperor',
-  'The Hierophant': 'https://via.placeholder.com/300x500/8B4513/FFFFFF?text=Hierophant',
-  'The Lovers': 'https://via.placeholder.com/300x500/FF69B4/FFFFFF?text=The+Lovers',
-  'The Chariot': 'https://via.placeholder.com/300x500/20B2AA/FFFFFF?text=The+Chariot',
-  'Strength': 'https://via.placeholder.com/300x500/FF6347/FFFFFF?text=Strength',
-  'The Hermit': 'https://via.placeholder.com/300x500/696969/FFFFFF?text=The+Hermit',
-  'Wheel of Fortune': 'https://via.placeholder.com/300x500/FFD700/000000?text=Wheel+of+Fortune',
-  'Justice': 'https://via.placeholder.com/300x500/000080/FFFFFF?text=Justice',
-  'The Hanged Man': 'https://via.placeholder.com/300x500/8B0000/FFFFFF?text=Hanged+Man',
-  'Death': 'https://via.placeholder.com/300x500/2F4F4F/FFFFFF?text=Death',
-  'Temperance': 'https://via.placeholder.com/300x500/00CED1/FFFFFF?text=Temperance',
-  'The Devil': 'https://via.placeholder.com/300x500/800000/FFFFFF?text=The+Devil',
-  'The Tower': 'https://via.placeholder.com/300x500/DC143C/FFFFFF?text=The+Tower',
-  'The Star': 'https://via.placeholder.com/300x500/87CEEB/000000?text=The+Star',
-  'The Moon': 'https://via.placeholder.com/300x500/191970/FFFFFF?text=The+Moon',
-  'The Sun': 'https://via.placeholder.com/300x500/FFD700/000000?text=The+Sun',
-  'Judgement': 'https://via.placeholder.com/300x500/FF8C00/FFFFFF?text=Judgement',
-  'The World': 'https://via.placeholder.com/300x500/228B22/FFFFFF?text=The+World'
-};
-
 // Animation URLs - Disabled for now
 const ANIMATIONS = {
   // Animations removed to avoid annoyance

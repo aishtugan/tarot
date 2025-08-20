@@ -19,10 +19,12 @@ A sophisticated Telegram bot that provides personalized tarot readings using AI-
 - **User Preferences** - Individual reversal settings saved per user
 
 ### 🤖 **AI-Powered Interpretations**
-- Personalized readings based on your question and context
-- Advanced AI analysis using OpenAI GPT
-- Contextual advice and guidance
-- Multiple interpretation styles
+- **Question Validation** - AI determines if your input is a tarot question
+- **Smart Filtering** - Polite responses for non-tarot questions
+- **Personalized readings** based on your question and context
+- **Advanced AI analysis** using OpenAI GPT
+- **Contextual advice** and guidance
+- **Multiple interpretation styles**
 
 ### 🌍 **Multi-Language Support**
 - **English** (default)
@@ -111,6 +113,7 @@ A sophisticated Telegram bot that provides personalized tarot readings using AI-
 | `/reversals` | Toggle card reversals on/off |
 | `/language` | Change bot language |
 | `/stats` | View your reading statistics |
+| `/status` | Check bot connection health |
 | `/profile` | Complete personal profile survey |
 | `/help` | Show available commands |
 
@@ -137,9 +140,12 @@ A sophisticated Telegram bot that provides personalized tarot readings using AI-
 - Fast and focused interpretations
 
 ### **General Reading**
-- Ask any question for personalized guidance
-- AI-powered contextual interpretations
-- Comprehensive advice and insights
+- **Smart Question Validation** - AI determines if your input is a tarot question
+- **Intelligent Filtering** - Polite responses guide you to ask tarot-related questions
+- **Ask any personal question** for guidance on life, relationships, career, decisions
+- **AI-powered contextual interpretations**
+- **Comprehensive advice and insights**
+- **Multilingual validation** - Works in English, Russian, and Spanish
 
 ### **Full Deck Reading**
 - Complete deck reading (Major + Minor Arcana)
@@ -305,20 +311,23 @@ docker run -d --name tarot-bot --env-file .env tarot-bot
 
 ## 📈 Recent Updates
 
-### **Latest Fixes (Current)**
-- ✅ **Fixed Card Reversals** - Resolved property name mismatch (card.isReversed vs card.reversed)
-- ✅ **Enhanced Reversal Logic** - Proper 30% reversal chance and user preference persistence
-- ✅ **Improved User Experience** - Toggle command works correctly in both directions
-- ✅ **Database Optimization** - Fixed user registration to preserve reversal preferences
-- ✅ **Visual Display Fixes** - Reversed cards now display correctly with 🔄 indicator
+### Latest Features
+- **AI Question Validation** - Smart filtering to ensure users ask tarot-related questions
+- **Connection Health Monitoring** - Automatic detection and recovery from network issues
+- **Bot Status Command** - `/status` command to check bot health and connection
+- **Multilingual Validation** - Question validation in English, Russian, and Spanish
+- **Intelligent User Guidance** - Polite responses for non-tarot questions
+- **Production Logging** - Comprehensive logging system for monitoring and debugging
+- **Minor Arcana Translations** - Complete card name translations for Russian and Spanish
 
-### **Previous Updates**
-- ✅ **Multi-language Support** - Complete Russian and Spanish translations
-- ✅ **Personal Profile Survey** - Enhanced personalization features
-- ✅ **Visual Enhancements** - Real tarot card images and improved formatting
-- ✅ **Full Deck Readings** - Comprehensive reading options
-- ✅ **User Statistics** - Reading history and progress tracking
-- ✅ **Translation System** - Card meanings and descriptions in all languages
+### Previous Updates
+- **Card Reversals System** - Toggle between upright and reversed card interpretations
+- **Full Deck Reading** - Simplified `/fulldeck` command for comprehensive readings
+- **User Profile System** - Streamlined 3-field profile (gender, age group, spiritual beliefs)
+- **Multi-language Support** - Full interface in English, Russian, and Spanish
+- **AI-Enhanced Interpretations** - Personalized readings using OpenAI GPT
+- **Visual Card Display** - Beautiful card images and Unicode art representations
+- **Reading Statistics** - Track your reading history and preferences
 
 ## 🤝 Contributing
 

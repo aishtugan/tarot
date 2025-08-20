@@ -52,6 +52,107 @@ export async function askGpt(userText) {
 }
 
 /**
+ * Validate if user input is a tarot-related question
+ * @param {string} userInput - User's input text
+ * @param {string} language - Language for response (en, ru, es)
+ * @returns {Object} Validation result with isValid and response
+ */
+export async function validateTarotQuestion(userInput, language = 'en') {
+  const languageInstructions = {
+    en: 'Respond in English. If the input is not a tarot question, respond with a polite explanation and ask them to ask a tarot-related question.',
+    ru: 'Отвечай на русском языке. Если ввод не является вопросом для таро, ответь вежливым объяснением и попроси задать вопрос, связанный с таро.',
+    es: 'Responde en español. Si la entrada no es una pregunta de tarot, responde con una explicación cortés y pídeles que hagan una pregunta relacionada con el tarot.'
+  };
+
+  const systemPrompt = `You are a tarot bot assistant. Your job is to determine if the user's input is a valid tarot reading question.
+
+VALID tarot questions MUST:
+- Be personal questions about the user's life, relationships, career, or decisions
+- Ask for guidance, insight, or understanding about a specific situation
+- Be phrased as questions (start with What, How, Why, When, Should I, Will I, etc.)
+- Be about the user's personal circumstances, not general topics
+
+EXAMPLES of VALID questions:
+- "Should I take this job offer?"
+- "What does my future hold?"
+- "Will I find love this year?"
+- "How can I improve my relationship?"
+- "What should I do about this situation?"
+
+EXAMPLES of NOT VALID:
+- "Hello" or "Hi" (greetings)
+- "Thanks" or "Thank you" (gratitude)
+- "How are you?" (general conversation)
+- "What's the weather?" (non-personal topic)
+- "Tell me a joke" (entertainment)
+- "What time is it?" (factual question)
+- Random statements without questions
+
+${languageInstructions[language] || languageInstructions.en}
+
+RESPONSE FORMAT:
+- If it's a valid tarot question: Respond with exactly "VALID" (nothing else)
+- If it's not a valid tarot question: Provide a polite, friendly response explaining that you're a tarot bot and asking them to ask a tarot-related question. Keep it under 200 characters.
+
+IMPORTANT: Only respond with exactly "VALID" if it's clearly a personal tarot question. Otherwise, provide a polite response asking for a tarot question.`;
+
+  const userPrompt = `User input: "${userInput}"
+
+Is this a valid tarot reading question?`;
+
+  const openAIClient = getOpenAIClient();
+  if (!openAIClient) {
+    return { isValid: true, response: null }; // Fallback to allow reading if API unavailable
+  }
+
+  // Fallback responses for different languages
+  const fallbackResponses = {
+    en: "🔮 I'm a tarot reading bot! Please ask me a personal question about your life, relationships, career, or any situation you'd like guidance on. For example: 'Should I take this job?' or 'What does my future hold?'",
+    ru: "🔮 Я бот для гадания на таро! Пожалуйста, задайте мне личный вопрос о вашей жизни, отношениях, карьере или любой ситуации, в которой вы хотели бы получить совет. Например: 'Стоит ли мне принять эту работу?' или 'Что ждет меня в будущем?'",
+    es: "🔮 ¡Soy un bot de lectura de tarot! Por favor, hazme una pregunta personal sobre tu vida, relaciones, carrera o cualquier situación en la que te gustaría recibir orientación. Por ejemplo: '¿Debería aceptar este trabajo?' o '¿Qué me depara el futuro?'"
+  };
+
+  try {
+    logger.debug('OpenAI Question Validation Request', {
+      userInput: userInput.substring(0, 100) + (userInput.length > 100 ? '...' : ''),
+      language
+    });
+
+    const completion = await openAIClient.chat.completions.create({
+      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+      temperature: 0.3,
+      max_tokens: 300
+    });
+
+    const response = completion.choices?.[0]?.message?.content?.trim() ?? "";
+    
+    logger.debug('OpenAI Question Validation Response', {
+      response: response.substring(0, 200) + (response.length > 200 ? '...' : '')
+    });
+
+    // Check if response indicates valid question - must be exactly "VALID"
+    const isValid = response.trim().toUpperCase() === 'VALID';
+    
+    return {
+      isValid,
+      response: isValid ? null : response
+    };
+
+  } catch (error) {
+    logger.errorWithStack('Error validating tarot question', error);
+    // Return fallback response if validation fails
+    return { 
+      isValid: false, 
+      response: fallbackResponses[language] || fallbackResponses.en 
+    };
+  }
+}
+
+/**
  * Generate tarot reading interpretation using GPT
  * @param {Array} interpretations - Array of card interpretation objects
  * @param {string} spreadName - Name of the spread used

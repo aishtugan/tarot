@@ -29,11 +29,14 @@ A sophisticated Telegram bot that provides AI-enhanced tarot readings using GPT 
 - **Automatic Detection**: User language preference storage
 
 ### 🤖 AI Integration
+- **Question Validation**: AI determines if user input is a tarot question
+- **Smart Filtering**: Polite responses for non-tarot related input
 - **GPT-4 Integration**: AI-enhanced interpretations and personalized advice
 - **Context-Aware Prompts**: Specialized prompts for different reading types
 - **Message Length Optimization**: Ensures responses fit Telegram's limits
 - **Fallback Handling**: Graceful degradation when AI is unavailable
 - **Personalized Advice**: User profile-based recommendations
+- **Multilingual Validation**: Question validation in all supported languages
 
 ### 👥 User Management
 - **User Registration**: Automatic user tracking and statistics
@@ -43,12 +46,20 @@ A sophisticated Telegram bot that provides AI-enhanced tarot readings using GPT 
 - **Database**: SQLite with proper schema and relationships
 
 ### 📱 Telegram Bot Features
-- **Command System**: `/start`, `/help`, `/daily`, `/love`, `/career`, `/quick`, `/reversals`, `/language`, `/stats`, `/profile`
+- **Command System**: `/start`, `/help`, `/daily`, `/love`, `/career`, `/quick`, `/reversals`, `/language`, `/stats`, `/status`, `/profile`
 - **Natural Language**: Responds to questions with tarot readings
 - **Message Formatting**: Rich HTML formatting with emojis
 - **Error Handling**: Graceful error messages and recovery
 - **Rate Limiting**: Built-in protection against spam
 - **Interactive Elements**: Inline keyboards and buttons
+
+### 🛡️ Connection Resilience
+- **Automatic Error Recovery**: Handles ECONNRESET and connection issues
+- **Health Monitoring**: 30-second connection health checks
+- **Status Command**: `/status` command for real-time connection monitoring
+- **Reconnection Logic**: Automatic reconnection with exponential backoff
+- **Graceful Shutdown**: Proper cleanup on restart and shutdown
+- **Production Logging**: Comprehensive error tracking and performance monitoring
 
 ### 🎨 Visual Enhancements
 - **Real Card Images**: Authentic Rider-Waite-Smith deck images
@@ -198,20 +209,23 @@ tarot-telegram-bot/
 
 ## 🎉 Recent Achievements
 
-### ✅ Latest Fixes (Current)
-- **Simplified Full Deck Command**: Removed selection menu, direct 3-card reading
-- **Fixed Card Reversals**: Resolved property name mismatch
-- **Enhanced Reversal Logic**: Proper 30% reversal chance
-- **Improved User Experience**: Toggle command works correctly
-- **Database Optimization**: Fixed user registration
-- **Visual Display Fixes**: Reversed cards display correctly
+### Latest Features
+- **AI Question Validation** - Intelligent filtering ensures users ask tarot-related questions
+- **Connection Health Monitoring** - Automatic detection and recovery from network issues  
+- **Bot Status Command** - `/status` command provides real-time connection health
+- **Multilingual Validation** - Question validation in English, Russian, and Spanish
+- **Intelligent User Guidance** - Polite responses guide users to proper tarot questions
+- **Production Logging** - Comprehensive logging system with rotation and analysis
+- **Minor Arcana Translations** - Complete 56-card translations for Russian and Spanish
 
-### ✅ Previous Milestones
-- **Multi-language Support**: Complete Russian and Spanish translations
-- **Personal Profile Survey**: Enhanced personalization features
-- **Visual Enhancements**: Real tarot card images
-- **Full Deck Readings**: Simplified 3-card reading from complete deck
-- **User Statistics**: Reading history and progress tracking
+### Previous Milestones
+- **Card Reversals System** - Toggle between upright and reversed interpretations
+- **Full Deck Reading** - Simplified `/fulldeck` command for comprehensive readings
+- **User Profile System** - Streamlined 3-field profile for better personalization
+- **Multi-language Support** - Complete interface translations
+- **AI-Enhanced Interpretations** - Personalized readings using OpenAI GPT
+- **Visual Card Display** - Beautiful card images and Unicode representations
+- **Reading Statistics** - Comprehensive tracking and analytics
 
 ---
 

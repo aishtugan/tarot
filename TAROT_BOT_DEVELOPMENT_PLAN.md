@@ -13,6 +13,8 @@ Create a sophisticated Telegram bot that provides personalized tarot readings us
 - Users who want control over reading complexity (reversals)
 
 ### **Key Features**
+- **AI Question Validation**: Smart filtering to ensure tarot-related questions
+- **Connection Health Monitoring**: Automatic error recovery and status tracking
 - **Multi-language Support**: Complete interface in English, Russian, and Spanish
 - **AI-Powered Interpretations**: GPT-enhanced reading analysis
 - **Card Reversals**: Toggle functionality for enhanced readings
@@ -20,6 +22,7 @@ Create a sophisticated Telegram bot that provides personalized tarot readings us
 - **Visual Enhancements**: Real tarot card images and beautiful formatting
 - **Comprehensive Reading Types**: Daily, Love, Career, Quick, and Full Deck readings
 - **User Statistics**: Reading history and progress tracking
+- **Production Logging**: Comprehensive monitoring and analysis tools
 
 ## 🎯 Product Description
 
@@ -42,10 +45,13 @@ The bot provides authentic tarot readings with the following capabilities:
 - **Visual Indicators** - Clear display of card orientation
 
 #### **AI Enhancement**
-- GPT-powered interpretations for contextual advice
-- Personalized guidance based on user questions
-- Enhanced reading summaries and insights
-- User profile integration for better personalization
+- **Question Validation** - AI determines if user input is a tarot question
+- **Smart User Guidance** - Polite responses for non-tarot related input
+- **GPT-powered interpretations** for contextual advice
+- **Personalized guidance** based on user questions
+- **Enhanced reading summaries** and insights
+- **User profile integration** for better personalization
+- **Multilingual validation** in all supported languages
 
 #### **Multi-Language Support**
 - **English** (default) - Complete interface and card meanings
@@ -434,9 +440,27 @@ The bot provides authentic tarot readings with the following capabilities:
 - [x] Reversal property name mismatch fix
 - [x] Database optimization for user preferences
 
+### **Phase 10: Connection Resilience** ✅ **COMPLETED**
+- [x] ECONNRESET error handling and automatic recovery
+- [x] Connection health monitoring system
+- [x] Bot status command (`/status`) implementation
+- [x] Graceful shutdown and restart mechanisms
+- [x] Production logging system with rotation
+
+### **Phase 11: AI Question Validation** ✅ **COMPLETED**
+- [x] AI-powered question validation system
+- [x] Smart filtering for tarot-related questions
+- [x] Multilingual validation responses
+- [x] Polite user guidance for non-tarot input
+- [x] Fallback handling for API unavailability
+
 ## 🎯 Current Status
 
 ### **✅ Completed Features**
+- **AI Question Validation** - Smart filtering for tarot-related questions only
+- **Connection Health Monitoring** - Automatic ECONNRESET error recovery
+- **Bot Status Monitoring** - `/status` command for real-time health checks
+- **Production Logging** - Comprehensive logging with rotation and analysis
 - **Core Bot Functionality** - All reading types working
 - **AI Integration** - GPT-powered interpretations active
 - **Multi-Language Support** - Complete English, Russian, Spanish support
@@ -445,16 +469,26 @@ The bot provides authentic tarot readings with the following capabilities:
 - **Visual Enhancements** - Real tarot card images and professional formatting
 - **User Statistics** - Complete reading history and statistics
 - **Full Deck Readings** - Simplified 3-card reading from complete deck
-- **Translation Fixes** - Card meanings display properly
-- **Error Handling** - Robust error management and fallbacks
 
-### **🔧 Recent Fixes**
-- **Simplified Full Deck Command** - Removed selection menu, direct 3-card reading
-- **Card Reversal System** - Fixed property name mismatch (card.isReversed vs card.reversed)
-- **Enhanced Reversal Logic** - Proper 30% reversal chance and user preference persistence
-- **Improved User Experience** - Toggle command works correctly in both directions
-- **Database Optimization** - Fixed user registration to preserve reversal preferences
-- **Visual Display Fixes** - Reversed cards now display correctly with 🔄 indicator
+## Recent Updates
+
+### Latest Features (Current)
+- **AI Question Validation** - Intelligent filtering ensures tarot-related questions
+- **Connection Health Monitoring** - Automatic detection and recovery from network issues
+- **Bot Status Command** - `/status` command provides real-time connection health
+- **Multilingual Validation** - Question validation in English, Russian, and Spanish
+- **Intelligent User Guidance** - Polite responses guide users to proper tarot questions
+- **Production Logging** - Comprehensive logging system with rotation and analysis
+- **Minor Arcana Translations** - Complete 56-card translations for Russian and Spanish
+
+### Previous Milestones
+- **Card Reversals System** - Toggle between upright and reversed interpretations
+- **Full Deck Reading** - Simplified `/fulldeck` command for comprehensive readings
+- **User Profile System** - Streamlined 3-field profile for better personalization
+- **Multi-language Support** - Complete interface translations
+- **AI-Enhanced Interpretations** - Personalized readings using OpenAI GPT
+- **Visual Card Display** - Beautiful card images and Unicode representations
+- **Reading Statistics** - Comprehensive tracking and analytics
 
 ### **📊 Performance Metrics**
 - **Response Time**: < 5 seconds for standard readings
