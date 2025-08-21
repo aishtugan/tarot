@@ -107,22 +107,18 @@ export class TarotReader {
     try {
       console.log(`⚡ Performing quick reading...`);
       
-      // Get 3 random cards for a quick 3-card reading
-      const cards = [];
+      // Get 3 random cards for a quick 3-card reading (no duplicates)
+      const cards = getRandomCards(3, 'all'); // ✅ Use getRandomCards to avoid duplicates
       const reversedCards = [];
       
-      for (let i = 0; i < 3; i++) {
-        const card = getRandomCard();
-        
-        // Apply reversal based on includeReversals parameter
+      // Apply reversals to the selected cards
+      cards.forEach((card, index) => {
         const isReversed = includeReversals && Math.random() < 0.3; // 30% chance of reversal if enabled
-        
         card.isReversed = isReversed;
-        cards.push(card);
         if (isReversed) {
-          reversedCards.push(i);
+          reversedCards.push(index);
         }
-      }
+      });
       
       if (includeReversals) {
         console.log(`🔄 Applied reversals: ${reversedCards.length} out of ${cards.length} cards`);
@@ -137,28 +133,20 @@ export class TarotReader {
       // Interpret the cards
       const interpretations = interpretSpread(cards, spreadName, readingType, reversedCards);
       
-      // Generate AI-enhanced interpretation
-      let aiEnhancedReading = null;
-      try {
-        aiEnhancedReading = await generateTarotInterpretation(interpretations, spreadName, readingType, userQuestion, language);
-        console.log('🤖 AI enhancement applied');
-      } catch (error) {
-        console.log('⚠️ AI enhancement failed, using standard interpretation');
-      }
-      
-      // Format the complete reading
-      const reading = formatCompleteReading(interpretations, spreadName, readingType, aiEnhancedReading);
+      // Format the complete reading (no AI enhancement for speed)
+      const reading = formatCompleteReading(interpretations, spreadName, readingType, null, null, language);
       
       // Add metadata
       reading.type = 'quick';
       reading.readingType = readingType;
       reading.userQuestion = userQuestion;
       reading.timestamp = new Date().toISOString();
+      reading.aiEnhanced = false; // Explicitly mark as non-AI
       
       // Store in reading history
       this.readingHistory.push(reading);
       
-      console.log(`✅ Quick 3-card reading completed`);
+      console.log(`✅ Quick 3-card reading completed (standard interpretation)`);
       
       return reading;
       
