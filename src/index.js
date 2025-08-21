@@ -259,12 +259,11 @@ async function handleCommand(chatId, command, language = 'en') {
         
       case "/language":
         try {
-          logger.botCommand(chatId, '/language', true);
           await handleLanguageCommand(chatId, language);
           await sendCommandsMessage(chatId, language);
         } catch (error) {
           logger.errorWithStack('Error in language command', error);
-          logger.botCommand(chatId, '/language', false);
+
           await bot.sendMessage(chatId, getTranslation('error_generic', language));
         }
         break;
@@ -409,7 +408,6 @@ async function handleCommand(chatId, command, language = 'en') {
         
       case "/profile":
         try {
-          logger.botCommand(chatId, '/profile', true);
           await handleProfileCommand(chatId, language);
           await sendCommandsMessage(chatId, language);
         } catch (error) {
@@ -421,7 +419,6 @@ async function handleCommand(chatId, command, language = 'en') {
         
       case "/reversals":
         try {
-          logger.botCommand(chatId, '/reversals', true);
           await handleReversalToggleCommand(chatId, language);
           await sendCommandsMessage(chatId, language);
         } catch (error) {

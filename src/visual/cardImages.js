@@ -97,11 +97,28 @@ const CARD_SYMBOLS = {
 
 /**
  * Get card symbol representation
- * @param {string} cardName - Name of the card
+ * @param {Object|string} cardOrName - Card object or card name
  * @returns {string} Card symbol or default symbol
  */
-export function getCardSymbol(cardName) {
-  return CARD_SYMBOLS[cardName] || '🃏';
+export function getCardSymbol(cardOrName) {
+  let cardName;
+  
+  // Handle both card objects and card names
+  if (typeof cardOrName === 'object' && cardOrName.card.name) {
+    cardName = cardOrName.card.name; // Always use the original English name from the card object
+  } else if (typeof cardOrName === 'string') {
+    cardName = cardOrName;
+  } else {
+    console.log(`⚠️ Invalid input for getCardSymbol:`, cardOrName);
+    return '🃏';
+  }
+  
+  const symbol = CARD_SYMBOLS[cardName];
+  if (!symbol) {
+    console.log(`⚠️ No symbol found for card: "${cardName}", using default symbol`);
+    return '🃏';
+  }
+  return symbol;
 }
 
 /**
@@ -112,7 +129,7 @@ export function getCardSymbol(cardName) {
  */
 export function createCardRepresentation(card, language = 'en') {
   const cardName = getTranslatedCardName(card, language);
-  const symbol = getCardSymbol(card.name);
+  const symbol = getCardSymbol(card); // Pass the entire card object
   const position = card.isReversed ? getTranslation('card_reversed', language) : getTranslation('card_upright', language);
   
   // Create a beautiful card frame using Unicode box drawing characters
@@ -163,7 +180,7 @@ export function createCardRepresentation(card, language = 'en') {
  */
 export function createSimpleCardDisplay(card, language = 'en') {
   const cardName = getTranslatedCardName(card, language);
-  const symbol = getCardSymbol(card.name);
+  const symbol = getCardSymbol(card); // Pass the entire card object
   const position = card.isReversed ? getTranslation('card_reversed', language) : getTranslation('card_upright', language);
   
   return `${symbol} <b>${cardName}</b> (${position})`;

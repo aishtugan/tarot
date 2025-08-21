@@ -43,7 +43,7 @@ export class TarotReader {
       const reversedCards = cards.map((card, index) => card.isReversed ? index : -1).filter(index => index !== -1);
       
       // Step 4: Interpret the cards
-      const interpretations = interpretSpread(cards, spread.name, readingType, reversedCards);
+      const interpretations = interpretSpread(cards, spread.name, readingType, reversedCards, language);
       
       // Step 5: Get user profile for personalization
       let userProfile = null;
@@ -126,12 +126,11 @@ export class TarotReader {
         console.log(`🔄 Reversals disabled: all cards are upright`);
       }
       
-      // Create spread name for positions
-      const positions = ['Past', 'Present', 'Future'];
-      const spreadName = 'Quick 3-Card Spread';
-      
-      // Interpret the cards
-      const interpretations = interpretSpread(cards, spreadName, readingType, reversedCards);
+      // Create spread name for positions (translated)
+      const spreadName = getTranslation('quick_spread_name', language);
+
+      // Interpret the cards (pass language parameter)
+      const interpretations = interpretSpread(cards, spreadName, readingType, reversedCards, language);
       
       // Format the complete reading (no AI enhancement for speed)
       const reading = formatCompleteReading(interpretations, spreadName, readingType, null, null, language);
@@ -299,7 +298,7 @@ export class TarotReader {
       const spreadName = `${deckType.charAt(0).toUpperCase() + deckType.slice(1)} ${cardCount}-Card Reading`;
       
       // Interpret the cards
-      const interpretations = interpretSpread(cards, spreadName, 'fullDeck', reversedCards);
+      const interpretations = interpretSpread(cards, spreadName, 'fullDeck', reversedCards, language);
       
       // Generate AI-enhanced interpretation
       let aiEnhancedReading = null;
@@ -320,7 +319,7 @@ export class TarotReader {
       }
       
       // Format the complete reading
-      const reading = formatCompleteReading(interpretations, spreadName, 'fullDeck', aiEnhancedReading, personalizedAdvice);
+      const reading = formatCompleteReading(interpretations, spreadName, 'fullDeck', aiEnhancedReading, personalizedAdvice, language);
       
       // Add metadata
       reading.deckType = deckType;

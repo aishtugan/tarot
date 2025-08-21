@@ -13,17 +13,18 @@ import { getTranslation } from '../languages/index.js';
  * @param {Object} position - The position information (optional)
  * @returns {Object} Interpretation object
  */
-export function interpretCard(card, context = 'general', isReversed = false, position = null) {
-  // Get basic card information
-  const meaning = getCardMeaning(card, context, isReversed);
+export function interpretCard(card, context = 'general', isReversed = false, position = null, language = 'en') {
+  // Get basic card information (use translated versions)
+  const meaning = getTranslatedCardMeaning(card, context, isReversed, language);
   const keywords = getCardKeywords(card);
   const description = getCardDescription(card);
-  const orientation = isReversed ? 'Reversed' : 'Upright';
+  const orientation = isReversed ? getTranslation('card_reversed', language) : getTranslation('card_upright', language);
+  const translatedCardName = getTranslatedCardName(card, language);
   
   // Create interpretation object
   const interpretation = {
     card: card,
-    name: card.name,
+    name: translatedCardName,
     suit: card.suit,
     orientation: orientation,
     isReversed: isReversed,
@@ -54,14 +55,14 @@ export function interpretCard(card, context = 'general', isReversed = false, pos
  * @param {Array} reversedCards - Array of card indices that are reversed (optional)
  * @returns {Array} Array of interpretation objects
  */
-export function interpretSpread(cards, spreadName, context = 'general', reversedCards = []) {
+export function interpretSpread(cards, spreadName, context = 'general', reversedCards = [], language = 'en') {
   const interpretations = [];
   
   cards.forEach((card, index) => {
     const isReversed = reversedCards.includes(index);
     const position = getPositionInfo(spreadName, index + 1);
     
-    const interpretation = interpretCard(card, context, isReversed, position);
+    const interpretation = interpretCard(card, context, isReversed, position, language);
     interpretations.push(interpretation);
   });
   
@@ -99,7 +100,7 @@ export function generateNarrative(interpretations, spreadName, context = 'genera
     narrative += `🎴 ${interpretation.name} (${interpretation.orientation})\n`;
     
     if (interpretation.isMajorArcana) {
-      narrative += `✨ Major Arcana\n`;
+      narrative += `✨ ${getTranslation('card_type_major_arcana', language)}\n`;
     } else {
       narrative += `⚡ ${interpretation.suit} (${interpretation.element})\n`;
     }
@@ -226,27 +227,27 @@ export function generateAdvice(interpretations, context, language = 'en') {
   interpretations.forEach(interpretation => {
     const meaning = interpretation.meaning.toLowerCase();
     
-    // Extract advice based on card meanings
+    // Extract advice based on card meanings (use translation keys)
     if (meaning.includes('trust') || meaning.includes('intuition')) {
-      advicePoints.push("Trust your intuition and inner wisdom");
+      advicePoints.push(getTranslation('advice_trust_intuition', language));
     }
     if (meaning.includes('action') || meaning.includes('move')) {
-      advicePoints.push("Take action and move forward with confidence");
+      advicePoints.push(getTranslation('advice_take_action', language));
     }
     if (meaning.includes('patience') || meaning.includes('wait')) {
-      advicePoints.push("Practice patience and allow things to unfold naturally");
+      advicePoints.push(getTranslation('advice_patience', language));
     }
     if (meaning.includes('change') || meaning.includes('transform')) {
-      advicePoints.push("Embrace change and transformation in your life");
+      advicePoints.push(getTranslation('advice_embrace_change', language));
     }
     if (meaning.includes('balance') || meaning.includes('harmony')) {
-      advicePoints.push("Seek balance and harmony in all areas of your life");
+      advicePoints.push(getTranslation('advice_balance_harmony', language));
     }
     if (meaning.includes('release') || meaning.includes('let go')) {
-      advicePoints.push("Release what no longer serves you");
+      advicePoints.push(getTranslation('advice_release', language));
     }
     if (meaning.includes('focus') || meaning.includes('concentrate')) {
-      advicePoints.push("Focus your energy and attention on your goals");
+      advicePoints.push(getTranslation('advice_focus', language));
     }
   });
   
@@ -258,9 +259,9 @@ export function generateAdvice(interpretations, context, language = 'en') {
       advice += `${index + 1}. ${point}\n`;
     });
   } else {
-    advice += "1. Trust the journey and remain open to guidance\n";
-    advice += "2. Listen to your inner voice and intuition\n";
-    advice += "3. Take one step at a time toward your goals\n";
+    advice += `1. ${getTranslation('advice_trust_journey', language)}\n`;
+    advice += `2. ${getTranslation('advice_listen_inner_voice', language)}\n`;
+    advice += `3. ${getTranslation('advice_one_step', language)}\n`;
   }
   
   return advice;

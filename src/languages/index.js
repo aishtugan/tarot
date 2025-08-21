@@ -107,8 +107,8 @@ const TRANSLATIONS = {
   en: {
     // Welcome and help
     welcome: "🔮 Welcome to the Mystical Tarot Bot!\n\nI'm your personal tarot reader, ready to guide you through life's mysteries.\n\nUse /help to see all available commands.",
-         help: "🔮 <b>Tarot Bot Commands</b>\n\n📖 <b>Reading Types:</b>\n• /daily - Daily card reading\n• /love - Love & relationship reading\n• /career - Career & work reading\n• /quick - Quick 3-card reading\n• /fulldeck - Advanced full deck options\n\n📊 <b>Other Commands:</b>\n• /profile - Complete personal survey for better readings\n• /reversals - Toggle card reversals on/off\n• /stats - View your reading statistics\n• /language - Change language\n• /help - Show this help\n\n💬 <b>Or simply ask me a question!</b>",
-    tarot_bot_commands: "🔮 <b>Available Commands:</b>\n\n📖 <b>Reading Types:</b>\n• /daily - Daily card reading\n• /love - Love & relationship reading\n• /career - Career & work reading\n• /quick - Quick 3-card reading\n• /fulldeck - Advanced full deck options\n\n📊 <b>Other Commands:</b>\n• /profile - Complete personal survey for better readings\n• /reversals - Toggle card reversals on/off\n• /stats - View your reading statistics\n• /language - Change language\n• /help - Show detailed help\n\n💬 <b>Or simply ask me a question!</b>",
+         help: "🔮 <b>Tarot Bot Commands</b>\n\n📖 <b>Reading Types:</b>\n• /daily - Daily card reading\n• /love - Love & relationship reading\n• /career - Career & work reading\n• /quick - Quick 3-card reading\n• /fulldeck - Advanced full deck options\n\n📊 <b>Other Commands:</b>\n• /profile - Complete personal survey for better readings\n• /reversals - Toggle card reversals on/off\n• /stats - View your reading statistics\n• /language - Change language\n• /help - Show this help\n\n💬 <b>Or simply ask me a question!",
+    tarot_bot_commands: "🔮 <b>Available Commands:</b>\n\n📖 <b>Reading Types:</b>\n• /daily - Daily card reading\n• /love - Love & relationship reading\n• /career - Career & work reading\n• /quick - Quick 3-card reading\n• /fulldeck - Advanced full deck options\n\n📊 <b>Other Commands:</b>\n• /profile - Complete personal survey for better readings\n• /reversals - Toggle card reversals on/off\n• /stats - View your reading statistics\n• /language - Change language\n• /help - Show detailed help\n\n💬 <b>Or simply ask me a question!",
     
     // Language selection
     language_select: "🌍 <b>Select Your Language</b>\n\nChoose your preferred language for the bot interface:",
@@ -120,6 +120,7 @@ const TRANSLATIONS = {
     love_reading: "💕 <b>Love & Relationship Reading</b>\n\nLet the cards reveal insights about your heart...",
     career_reading: "💼 <b>Career & Work Reading</b>\n\nDiscover what the cards say about your professional path...",
     quick_reading: "⚡ <b>Quick 3-Card Reading</b>\n\nPast • Present • Future",
+    quick_spread_name: "Quick 3-Card Spread",
     fulldeck_options: "🔮 <b>Full Deck Reading Options</b>\n\nChoose your preferred deck type:",
     
     // Full deck options
@@ -161,6 +162,8 @@ const TRANSLATIONS = {
     card_meaning: "Meaning",
     card_advice: "Advice",
     card_reversed_note: "Note: Card image shown upright for clarity, but meaning is reversed",
+    card_type_major_arcana: "Major Arcana",
+    card_type_minor_arcana: "Minor Arcana",
     
     // Reading sections
     reading_summary_title: "**🔮 Reading Summary**",
@@ -189,6 +192,18 @@ const TRANSLATIONS = {
     reading_guidance_career: "In your career, leverage your strengths and be open to new opportunities. Professional growth often comes through challenges.",
     reading_guidance_health: "For your health, listen to your body's wisdom and maintain balance in all aspects of your life.",
     reading_guidance_general: "Trust your intuition and remain open to the guidance the universe is offering you.",
+    
+    // Advice points
+    advice_trust_intuition: "Trust your intuition and inner wisdom",
+    advice_take_action: "Take action and move forward with confidence",
+    advice_patience: "Practice patience and allow things to unfold naturally",
+    advice_embrace_change: "Embrace change and transformation in your life",
+    advice_balance_harmony: "Seek balance and harmony in all areas of your life",
+    advice_release: "Release what no longer serves you",
+    advice_focus: "Focus your energy and attention on your goals",
+    advice_trust_journey: "Trust the journey and remain open to guidance",
+    advice_listen_inner_voice: "Listen to your inner voice and intuition",
+    advice_one_step: "Take one step at a time toward your goals",
     
           // Reading display
       reading_your_question: "❓ **Your Question:** {question}",
@@ -402,6 +417,7 @@ const TRANSLATIONS = {
     love_reading: "💕 <b>Гадание на любовь и отношения</b>\n\nПозвольте картам раскрыть тайны вашего сердца...",
     career_reading: "💼 <b>Гадание на карьеру и работу</b>\n\nУзнайте, что карты говорят о вашем профессиональном пути...",
     quick_reading: "⚡ <b>Быстрое гадание на 3 карты</b>\n\nПрошлое • Настоящее • Будущее",
+    quick_spread_name: "Быстрый расклад на 3 карты",
     fulldeck_options: "🔮 <b>Опции гадания полной колодой</b>\n\nВыберите предпочитаемый тип колоды:",
     
     // Full deck options
@@ -443,6 +459,8 @@ const TRANSLATIONS = {
     card_meaning: "Значение",
     card_advice: "Совет",
     card_reversed_note: "Примечание: Изображение карты показано прямо для ясности, но значение перевернутое",
+    card_type_major_arcana: "Старшие арканы",
+    card_type_minor_arcana: "Младшие арканы",
     
     // Reading sections
     reading_summary_title: "**🔮 Сводка гадания**",
@@ -471,6 +489,18 @@ const TRANSLATIONS = {
     reading_guidance_career: "В карьере используйте свои сильные стороны и будьте открыты новым возможностям. Профессиональный рост часто приходит через вызовы.",
     reading_guidance_health: "Для здоровья слушайте мудрость своего тела и поддерживайте баланс во всех аспектах жизни.",
     reading_guidance_general: "Доверяйте своей интуиции и оставайтесь открытыми руководству, которое предлагает вселенная.",
+    
+    // Advice points
+    advice_trust_intuition: "Доверяйте своей интуиции и внутреннему мудрости",
+    advice_take_action: "Действуйте и продвигайтесь вперед с уверенностью",
+    advice_patience: "Практикуйте терпение и позвольте вещам развиваться естественным образом",
+    advice_embrace_change: "Принимайте изменения и трансформацию в своей жизни",
+    advice_balance_harmony: "Ищите баланс и гармонию во всех областях вашей жизни",
+    advice_release: "Освобождайте то, что больше не служит вам",
+    advice_focus: "Сосредоточьте свою энергию и внимание на своих целях",
+    advice_trust_journey: "Доверяйте пути и оставайтесь открытыми руководству",
+    advice_listen_inner_voice: "Слушайте свою внутреннюю голос и интуицию",
+    advice_one_step: "Делайте один шаг за раз к своим целям",
     
           // Reading display
       reading_your_question: "❓ **Ваш вопрос:** {question}",
@@ -684,6 +714,7 @@ const TRANSLATIONS = {
     love_reading: "💕 <b>Lectura de Amor y Relaciones</b>\n\nDeja que las cartas revelen insights sobre tu corazón...",
     career_reading: "💼 <b>Lectura de Carrera y Trabajo</b>\n\nDescubre qué dicen las cartas sobre tu camino profesional...",
     quick_reading: "⚡ <b>Lectura Rápida de 3 Cartas</b>\n\nPasado • Presente • Futuro",
+    quick_spread_name: "Tirada Rápida de 3 Cartas",
     fulldeck_options: "🔮 <b>Opciones de Lectura de Mazo Completo</b>\n\nElige tu tipo de mazo preferido:",
     
     // Full deck options
@@ -725,6 +756,8 @@ const TRANSLATIONS = {
     card_meaning: "Significado",
     card_advice: "Consejo",
     card_reversed_note: "Nota: La imagen de la carta se muestra derecha para mayor claridad, pero el significado está invertido",
+    card_type_major_arcana: "Arcanos Mayores",
+    card_type_minor_arcana: "Arcanos Menores",
     
     // Reading sections
     reading_summary_title: "**🔮 Resumen de Lectura**",
@@ -753,6 +786,18 @@ const TRANSLATIONS = {
     reading_guidance_career: "En tu carrera, aprovecha tus fortalezas y sé abierto a nuevas oportunidades. El crecimiento profesional a menudo viene a través de desafíos.",
     reading_guidance_health: "Para tu salud, escucha la sabiduría de tu cuerpo y mantén el equilibrio en todos los aspectos de tu vida.",
     reading_guidance_general: "Confía en tu intuición y permanece abierto a la guía que el universo te está ofreciendo.",
+    
+    // Advice points
+    advice_trust_intuition: "Confía en tu intuición y en tu sabiduría interior",
+    advice_take_action: "Actúa y avanza con confianza",
+    advice_patience: "Practica paciencia y deja que las cosas evolucionen naturalmente",
+    advice_embrace_change: "Acepta los cambios y la transformación en tu vida",
+    advice_balance_harmony: "Busca el equilibrio y la armonía en todas las áreas de tu vida",
+    advice_release: "Libera lo que ya no te sirve",
+    advice_focus: "Concentra tu energía y atención en tus objetivos",
+    advice_trust_journey: "Confía en el viaje y permanece abierto a la guía",
+    advice_listen_inner_voice: "Escucha tu voz interior y tu intuición",
+    advice_one_step: "Toma un paso a la vez hacia tus objetivos",
     
           // Reading display
       reading_your_question: "❓ **Tu Pregunta:** {question}",
