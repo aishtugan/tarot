@@ -461,6 +461,15 @@ async function handleCommand(chatId, command, language = 'en') {
         }
         break;
         
+      case "/admin":
+        try {
+          await handleAdminCommand(chatId, command, language);
+        } catch (error) {
+          logger.errorWithStack('Error in admin command', error);
+          await bot.sendMessage(chatId, getTranslation('error_generic', language));
+        }
+        break;
+        
       default:
         await bot.sendMessage(
           chatId,
@@ -970,6 +979,247 @@ function formatConnectionStatus(status, language = 'en') {
   }
   
   return text;
+}
+
+// Admin functionality
+const ADMIN_USER_IDS = process.env.ADMIN_USER_IDS ? process.env.ADMIN_USER_IDS.split(',').map(id => parseInt(id.trim())) : [];
+
+/**
+ * Check if a user is an admin
+ * @param {number} userId - User ID to check
+ * @returns {boolean} True if user is admin
+ */
+function isAdmin(userId) {
+  return ADMIN_USER_IDS.includes(userId);
+}
+
+/**
+ * Handle admin commands
+ * @param {number} chatId - Chat ID
+ * @param {string} command - Full command string
+ * @param {string} language - User language
+ */
+async function handleAdminCommand(chatId, command, language = 'en') {
+  // Check if user is admin
+  if (!isAdmin(chatId)) {
+    await bot.sendMessage(chatId, "❌ Access denied. Admin privileges required.");
+    return;
+  }
+
+  const parts = command.split(' ');
+  const subCommand = parts[1]?.toLowerCase();
+
+  switch (subCommand) {
+    case 'broadcast':
+      await handleBroadcastCommand(chatId, parts.slice(2).join(' '), language);
+      break;
+    case 'stats':
+      await handleAdminStatsCommand(chatId, language);
+      break;
+    case 'help':
+      await handleAdminHelpCommand(chatId, language);
+      break;
+    default:
+      await handleAdminHelpCommand(chatId, language);
+  }
+}
+
+/**
+ * Handle broadcast command
+ * @param {number} chatId - Admin chat ID
+ * @param {string} message - Message to broadcast
+ * @param {string} language - User language
+ */
+async function handleBroadcastCommand(chatId, message, language = 'en') {
+  if (!message.trim()) {
+    await bot.sendMessage(chatId, 
+      "📢 **Admin Broadcast Command**\n\n" +
+      "Usage: `/admin broadcast <message>`\n\n" +
+      "Example: `/admin broadcast 🔮 New feature available! Check out the updated tarot bot.`\n\n" +
+      "⚠️ **Warning**: This will send the message to ALL registered users.",
+      { parse_mode: 'Markdown' }
+    );
+    return;
+  }
+
+  try {
+    // Get all user IDs from database
+    const { getAllUserIds } = await import('./database/users.js');
+    const userIds = getAllUserIds();
+    
+    if (userIds.length === 0) {
+      await bot.sendMessage(chatId, "❌ No users found in database.");
+      return;
+    }
+
+    // Send confirmation to admin
+    await bot.sendMessage(chatId, 
+      `📢 **Broadcast Confirmation**\n\n` +
+      `Message: ${message}\n\n` +
+      `Recipients: ${userIds.length} users\n\n` +
+      `⚠️ Are you sure you want to send this message to all users?`,
+      { parse_mode: 'Markdown' }
+    );
+
+    // Store the broadcast message for confirmation
+    pendingBroadcasts.set(chatId, {
+      message,
+      recipients: userIds.length,
+      timestamp: Date.now()
+    });
+
+    // Send confirmation buttons
+    const keyboard = {
+      inline_keyboard: [
+        [
+          { text: '✅ Confirm', callback_data: 'admin_broadcast_confirm' },
+          { text: '❌ Cancel', callback_data: 'admin_broadcast_cancel' }
+        ]
+      ]
+    };
+
+    await bot.sendMessage(chatId, "Please confirm the broadcast:", { reply_markup: keyboard });
+
+  } catch (error) {
+    logger.errorWithStack('Error in broadcast command', error);
+    await bot.sendMessage(chatId, "❌ Error preparing broadcast: " + error.message);
+  }
+}
+
+/**
+ * Handle admin stats command
+ * @param {number} chatId - Admin chat ID
+ * @param {string} language - User language
+ */
+async function handleAdminStatsCommand(chatId, language = 'en') {
+  try {
+    const { getAllUserIds, getTotalReadings } = await import('./database/users.js');
+    const userIds = getAllUserIds();
+    const totalReadings = getTotalReadings();
+
+    const statsText = 
+      "📊 **Admin Statistics**\n\n" +
+      `👥 Total Users: ${userIds.length}\n` +
+      `🔮 Total Readings: ${totalReadings}\n` +
+      `📅 Date: ${new Date().toLocaleString()}\n\n` +
+      "Use `/admin broadcast` to send messages to all users.";
+
+    await bot.sendMessage(chatId, statsText, { parse_mode: 'Markdown' });
+
+  } catch (error) {
+    logger.errorWithStack('Error in admin stats command', error);
+    await bot.sendMessage(chatId, "❌ Error getting admin stats: " + error.message);
+  }
+}
+
+/**
+ * Handle admin help command
+ * @param {number} chatId - Admin chat ID
+ * @param {string} language - User language
+ */
+async function handleAdminHelpCommand(chatId, language = 'en') {
+  const helpText = 
+    "🔧 **Admin Commands**\n\n" +
+    "📢 `/admin broadcast <message>` - Send message to all users\n" +
+    "📊 `/admin stats` - View bot statistics\n" +
+    "❓ `/admin help` - Show this help\n\n" +
+    "⚠️ **Admin privileges required**";
+
+  await bot.sendMessage(chatId, helpText, { parse_mode: 'Markdown' });
+}
+
+// Store pending broadcasts for confirmation
+const pendingBroadcasts = new Map();
+
+// Handle callback queries for admin confirmations
+bot.on('callback_query', async (query) => {
+  const chatId = query.message.chat.id;
+  const data = query.data;
+
+  if (!isAdmin(chatId)) {
+    await bot.answerCallbackQuery(query.id, { text: "❌ Access denied" });
+    return;
+  }
+
+  if (data === 'admin_broadcast_confirm') {
+    await handleBroadcastConfirm(chatId, query.id);
+  } else if (data === 'admin_broadcast_cancel') {
+    await handleBroadcastCancel(chatId, query.id);
+  }
+});
+
+/**
+ * Handle broadcast confirmation
+ * @param {number} chatId - Admin chat ID
+ * @param {string} callbackQueryId - Callback query ID
+ */
+async function handleBroadcastConfirm(chatId, callbackQueryId) {
+  const broadcast = pendingBroadcasts.get(chatId);
+  
+  if (!broadcast) {
+    await bot.answerCallbackQuery(callbackQueryId, { text: "❌ No pending broadcast found" });
+    return;
+  }
+
+  try {
+    // Get all user IDs
+    const { getAllUserIds } = await import('./database/users.js');
+    const userIds = getAllUserIds();
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    // Send message to all users
+    for (const userId of userIds) {
+      try {
+        await bot.sendMessage(userId, 
+          "📢 **Announcement from Tarot Bot**\n\n" + broadcast.message,
+          { parse_mode: 'Markdown' }
+        );
+        successCount++;
+        
+        // Small delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+      } catch (error) {
+        errorCount++;
+        logger.errorWithStack(`Failed to send broadcast to user ${userId}`, error);
+      }
+    }
+
+    // Remove pending broadcast
+    pendingBroadcasts.delete(chatId);
+
+    // Send confirmation to admin
+    const resultText = 
+      `✅ **Broadcast Completed**\n\n` +
+      `📤 Sent: ${successCount} users\n` +
+      `❌ Failed: ${errorCount} users\n` +
+      `📅 Time: ${new Date().toLocaleString()}`;
+
+    // We need to get the message ID from the callback query
+    // For now, just send a new message
+    await bot.sendMessage(chatId, resultText, { parse_mode: 'Markdown' });
+
+    await bot.answerCallbackQuery(callbackQueryId, { text: "✅ Broadcast sent successfully" });
+
+  } catch (error) {
+    logger.errorWithStack('Error in broadcast confirmation', error);
+    await bot.answerCallbackQuery(callbackQueryId, { text: "❌ Error sending broadcast" });
+  }
+}
+
+/**
+ * Handle broadcast cancellation
+ * @param {number} chatId - Admin chat ID
+ * @param {string} callbackQueryId - Callback query ID
+ */
+async function handleBroadcastCancel(chatId, callbackQueryId) {
+  pendingBroadcasts.delete(chatId);
+  
+  await bot.sendMessage(chatId, "❌ **Broadcast Cancelled**", { parse_mode: 'Markdown' });
+
+  await bot.answerCallbackQuery(callbackQueryId, { text: "❌ Broadcast cancelled" });
 }
 
 // Graceful shutdown

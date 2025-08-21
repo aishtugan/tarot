@@ -173,6 +173,32 @@ export function createCardRepresentation(card, language = 'en') {
 }
 
 /**
+ * Create an HTML-formatted card representation (safer for Telegram)
+ * @param {Object} card - Card object
+ * @param {string} language - User language
+ * @returns {string} HTML-formatted card representation
+ */
+export function createHTMLCardRepresentation(card, language = 'en') {
+  const cardName = getTranslatedCardName(card, language);
+  const symbol = getCardSymbol(card);
+  const position = card.isReversed ? getTranslation('card_reversed', language) : getTranslation('card_upright', language);
+  
+  // Create a simple but elegant HTML representation
+  let html = '<code>\n';
+  html += '┌─────────────────────────┐\n';
+  html += '│                         │\n';
+  html += `│         ${symbol}         │\n`;
+  html += '│                         │\n';
+  html += `│      <b>${cardName}</b>      │\n`;
+  html += `│      [${position}]      │\n`;
+  html += '│                         │\n';
+  html += '└─────────────────────────┘\n';
+  html += '</code>';
+  
+  return html;
+}
+
+/**
  * Create a simple card display for inline messages
  * @param {Object} card - Card object
  * @param {string} language - User language
@@ -206,6 +232,7 @@ export function createCardGalleryWithSymbols(cards, language = 'en') {
 export default {
   getCardSymbol,
   createCardRepresentation,
+  createHTMLCardRepresentation,
   createSimpleCardDisplay,
   createCardGalleryWithSymbols
 };

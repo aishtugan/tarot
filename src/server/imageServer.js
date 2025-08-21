@@ -18,10 +18,10 @@ app.use('/images', express.static(imagesPath));
 
 // Card image mapping - maps card names to image files
 const CARD_IMAGE_MAP = {
-  // Major Arcana
+  // Major Arcana - Updated to match actual filenames
   'The Fool': 'major/fool.jpg',
   'The Magician': 'major/magician.jpg',
-  'The High Priestess': 'major/high-priestess.jpg',
+  'The High Priestess': 'major/priestess.jpg',
   'The Empress': 'major/empress.jpg',
   'The Emperor': 'major/emperor.jpg',
   'The Hierophant': 'major/hierophant.jpg',
@@ -29,9 +29,9 @@ const CARD_IMAGE_MAP = {
   'The Chariot': 'major/chariot.jpg',
   'Strength': 'major/strength.jpg',
   'The Hermit': 'major/hermit.jpg',
-  'Wheel of Fortune': 'major/wheel-of-fortune.jpg',
+  'Wheel of Fortune': 'major/fortune.jpg',
   'Justice': 'major/justice.jpg',
-  'The Hanged Man': 'major/hanged-man.jpg',
+  'The Hanged Man': 'major/hanged.jpg',
   'Death': 'major/death.jpg',
   'Temperance': 'major/temperance.jpg',
   'The Devil': 'major/devil.jpg',

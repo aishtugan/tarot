@@ -4,7 +4,7 @@
 import { getCardImage, getAnimation, createEnhancedReading, createWelcomeMessage } from './index.js';
 import { getTranslation } from '../languages/index.js';
 import { getTranslatedCardName } from '../tarot/cards.js';
-import { createCardRepresentation, createSimpleCardDisplay, createCardGalleryWithSymbols } from './cardImages.js';
+import { createCardRepresentation, createHTMLCardRepresentation, createSimpleCardDisplay, createCardGalleryWithSymbols } from './cardImages.js';
 
 /**
  * Send card image with caption
@@ -15,7 +15,7 @@ import { createCardRepresentation, createSimpleCardDisplay, createCardGalleryWit
  */
 export async function sendCardImage(bot, chatId, card, language = 'en') {
   try {
-    const cardImage = getCardImage(card.name);
+    const cardImage = getCardImage(card.card.name);
     
     if (cardImage) {
       // Send the actual card image
@@ -34,14 +34,33 @@ export async function sendCardImage(bot, chatId, card, language = 'en') {
       return true;
     } else {
       // Fallback to beautiful card representation using Unicode art
-      const cardArt = createCardRepresentation(card, language);
-      const caption = formatCardCaption(card, language);
+      try {
+        const cardArt = createHTMLCardRepresentation(card, language);
+        const caption = formatCardCaption(card, language);
 
-      // Send the card art as a monospace text message
-      await bot.sendMessage(chatId, `\`\`\`\n${cardArt}\n\`\`\`\n\n${caption}`, {
-        parse_mode: 'MarkdownV2'
-      });
-      return true;
+        // Send the card art as HTML-formatted text
+        await bot.sendMessage(chatId, `${cardArt}\n\n${caption}`, {
+          parse_mode: 'HTML'
+        });
+        return true;
+      } catch (htmlError) {
+        console.error('HTML card representation failed, trying plain text:', htmlError);
+        
+        // Fallback to simple text representation
+        try {
+          const simpleDisplay = createSimpleCardDisplay(card, language);
+          await bot.sendMessage(chatId, simpleDisplay, { parse_mode: 'HTML' });
+          return true;
+        } catch (simpleError) {
+          console.error('Simple card display also failed:', simpleError);
+          
+          // Final fallback - just send card name
+          const cardName = getTranslatedCardName(card, language);
+          const position = card.isReversed ? getTranslation('card_reversed', language) : getTranslation('card_upright', language);
+          await bot.sendMessage(chatId, `🃏 ${cardName} (${position})`);
+          return false;
+        }
+      }
     }
   } catch (error) {
     console.error('Error sending card message:', error);
@@ -66,7 +85,7 @@ export async function sendCardGallery(bot, chatId, cards, language = 'en') {
     let hasImages = false;
     
     for (const card of cards) {
-      const cardImage = getCardImage(card.name);
+      const cardImage = getCardImage(card.card.name);
       if (cardImage) {
         hasImages = true;
         const caption = formatCardCaption(card, language);

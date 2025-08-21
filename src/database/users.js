@@ -149,15 +149,10 @@ export function getUserReversalPreference(telegramId) {
   try {
     const stmt = db.prepare('SELECT include_reversals FROM users WHERE telegram_id = ?');
     const result = stmt.get(telegramId);
-    // If result is null or include_reversals is null, default to true
-    if (!result || result.include_reversals === null) {
-      return true;
-    }
-    // Convert to number first, then to boolean
-    return Boolean(Number(result.include_reversals));
+    return result ? Boolean(Number(result.include_reversals)) : true;
   } catch (error) {
     console.error('❌ Error getting user reversal preference:', error);
-    return true; // Default to true
+    return true;
   }
 }
 
@@ -174,6 +169,29 @@ export function setUserReversalPreference(telegramId, includeReversals) {
   } catch (error) {
     console.error('❌ Error setting user reversal preference:', error);
     throw error;
+  }
+}
+
+// Admin functions
+export function getAllUserIds() {
+  try {
+    const stmt = db.prepare('SELECT telegram_id FROM users');
+    const results = stmt.all();
+    return results.map(row => row.telegram_id);
+  } catch (error) {
+    console.error('❌ Error getting all user IDs:', error);
+    return [];
+  }
+}
+
+export function getTotalReadings() {
+  try {
+    const stmt = db.prepare('SELECT COUNT(*) as count FROM readings');
+    const result = stmt.get();
+    return result ? result.count : 0;
+  } catch (error) {
+    console.error('❌ Error getting total readings:', error);
+    return 0;
   }
 }
 
